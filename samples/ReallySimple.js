@@ -1,10 +1,11 @@
-var MultiPart = require("./src/JSss.js")("ohByBucket","MyAccessKey","mySecret","folde/theFileName.zip");
+var MultiPart = require("./../src/JSss.js")("ohByBucket","MyAccessKey","mySecret","folde/theFileName.zip");
 MultiPart.on("end",function () {
 	console.log("end");	
 });
 MultiPart.on("error",function (err) {
-	console.log(err);
-	MultiPart.abortUpload();
+	console.log(err);	
+//	//DO NOT ABORT HERE !! - SINCE ABORT CAN RESULT IN ERROR EVENT
+//	MultiPart.abortUpload();
 });
 //Upload successeded or finished
 MultiPart.on("upload-notice",function (partNumber,status) {

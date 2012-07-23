@@ -5,6 +5,12 @@
 // see LICENSE for details.
 //
 
+
+//TODO IMPLEMENT http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html
+//Upload in other thread/child ?
+//Receive buffer in upload too, if not create one
+//ERROR EPIPE
+
 //Preferences
 var useSSL = true;
 var endPoint = "s3.amazonaws.com";
@@ -13,9 +19,6 @@ var AWSSign = require('aws-sign'),
 	http = (useSSL ? require('https') : require('http')),
 	util = require ('util'),
 	xml2json = require("node-xml2json");
-	
-//TODO IMPLEMENT http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html
-//Upload in ohter thread
 
 /**
 * Initialize S3Api function
