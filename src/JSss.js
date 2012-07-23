@@ -23,19 +23,27 @@ function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName) {
 	self = this ;
 	//Checks
 	if (!_bucketID) {
-		self.emit("error","_bucketID *REQUIRED* parameter is missing;");/*stills emitting error, so an exception will be raise*/
+		var errMsg = "_bucketID *REQUIRED* parameter is missing;";
+		console.error(errMsg);
+		self.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
 		self.emit("jsss-end");
 		return;
 	}else if (!_AWSAccessKeyID) {
-		self.emit("error","_AWSAccessKeyID *REQUIRED* parameter is missing;");/*stills emitting error, so an exception will be raise*/
+		var errMsg = "_AWSAccessKeyID *REQUIRED* parameter is missing;";
+		console.error(errMsg);
+		self.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
 		self.emit("jsss-end");
 		return;
 	}else if (!_AWSSecretAccessKey) {
-		self.emit("error","_AWSSecretAccessKey *REQUIRED* parameter is missing;");/*stills emitting error, so an exception will be raise*/
+		var errMsg = "_AWSSecretAccessKey *REQUIRED* parameter is missing;";
+		console.error(errMsg);
+		self.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
 		self.emit("jsss-end");
 		return;
 	}else if (!fileName) {
-		self.emit("error","fileName *REQUIRED* parameter is missing;"); /*stills emitting error, so an exception will be raise*/
+		var errMsg = "fileName *REQUIRED* parameter is missing;";
+		console.error(errMsg);
+		self.emit("error",errMsg); /*stills emitting error, so an exception will be raise*/
 		self.emit("jsss-end");
 		return;
 	}
