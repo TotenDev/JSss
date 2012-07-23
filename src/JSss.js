@@ -19,41 +19,41 @@ var util = require ('util'),
 **/
 module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName) { return new JSss(bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName); }
 function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName) {
-	//self
-	self = this ;
+	//JSssObject
+	JSssObject = this ;
 	//Checks
 	if (!_bucketID) {
 		var errMsg = "_bucketID *REQUIRED* parameter is missing;";
 		console.error(errMsg);
-		self.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
-		self.emit("jsss-end");
+		JSssObject.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
+		JSssObject.emit("jsss-end");
 		return;
 	}else if (!_AWSAccessKeyID) {
 		var errMsg = "_AWSAccessKeyID *REQUIRED* parameter is missing;";
 		console.error(errMsg);
-		self.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
-		self.emit("jsss-end");
+		JSssObject.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
+		JSssObject.emit("jsss-end");
 		return;
 	}else if (!_AWSSecretAccessKey) {
 		var errMsg = "_AWSSecretAccessKey *REQUIRED* parameter is missing;";
 		console.error(errMsg);
-		self.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
-		self.emit("jsss-end");
+		JSssObject.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
+		JSssObject.emit("jsss-end");
 		return;
 	}else if (!fileName) {
 		var errMsg = "fileName *REQUIRED* parameter is missing;";
 		console.error(errMsg);
-		self.emit("error",errMsg); /*stills emitting error, so an exception will be raise*/
-		self.emit("jsss-end");
+		JSssObject.emit("error",errMsg); /*stills emitting error, so an exception will be raise*/
+		JSssObject.emit("jsss-end");
 		return;
 	}
 	
 	//Get API
-	self.fileName = fileName;
-	self.uploadChunks = [];
-	self.S3Api = require("./S3Api.js")(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey);
+	JSssObject.fileName = fileName;
+	JSssObject.uploadChunks = [];
+	JSssObject.S3Api = require("./S3Api.js")(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey);
 	//AddListener newListener 
-	self.addListener("newListener",function (event,listFunction) {
+	JSssObject.addListener("newListener",function (event,listFunction) {
 		switch (event) {
 			case "jsss-ready":{ this.getReady(); } break;
 			default: {} break;
@@ -69,13 +69,13 @@ inherits(JSss, EventEmitter);
 **/
 JSss.prototype.getReady = function getReady() {
 	//Try to get upload id already formated 
-	self.S3Api.multipartInitiateUpload(self.fileName,function (suc,initUpResp) {
+	JSssObject.S3Api.multipartInitiateUpload(JSssObject.fileName,function (suc,initUpResp) {
 		if (suc) { 
-			self.uploadID = initUpResp;
-			self.emit("jsss-ready"/*,self.uploadID*/); 
+			JSssObject.uploadID = initUpResp;
+			JSssObject.emit("jsss-ready"/*,JSssObject.uploadID*/); 
 		} else {
-			self.emit("jsss-error",initUpResp);
-			self.emit("jsss-end");
+			JSssObject.emit("jsss-error",initUpResp);
+			JSssObject.emit("jsss-end");
 		}
 	},true);	
 };
@@ -88,11 +88,11 @@ JSss.prototype.getReady = function getReady() {
 * @param number chunkPosition - Chunk Position, so you can upload multiple parts at same time - REQUIRED
 **/
 JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
-	self.S3Api.multipartUploadChunk(self.fileName,self.uploadID,chunkPosition,chunkData,function (suc,eTag) {
+	JSssObject.S3Api.multipartUploadChunk(JSssObject.fileName,JSssObject.uploadID,chunkPosition,chunkData,function (suc,eTag) {
 		if (suc) {
-			self.uploadChunks.push({PartNumber:chunkPosition,ETag:eTag});
-			self.emit("jsss-upload-notice",chunkPosition,true);
-		}else { self.emit("jsss-upload-notice",chunkPosition,false); }
+			JSssObject.uploadChunks.push({PartNumber:chunkPosition,ETag:eTag});
+			JSssObject.emit("jsss-upload-notice",chunkPosition,true);
+		}else { JSssObject.emit("jsss-upload-notice",chunkPosition,false); }
 	},true);	
 };
 /**
@@ -100,9 +100,9 @@ JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
 * It'll cancel upload, and delete all uploaded chunks.
 **/
 JSss.prototype.abortUpload = function abortUpload() {
-	self.S3Api.multipartAbortUpload(self.fileName,self.uploadID,function (suc,respString) {
-		if (!suc) { self.emit("jsss-error",respString); }
-		self.emit("jsss-end");
+	JSssObject.S3Api.multipartAbortUpload(JSssObject.fileName,JSssObject.uploadID,function (suc,respString) {
+		if (!suc) { JSssObject.emit("jsss-error",respString); }
+		JSssObject.emit("jsss-end");
 	});
 };
 /**
@@ -112,13 +112,13 @@ JSss.prototype.abortUpload = function abortUpload() {
 **/
 JSss.prototype.finishUpload = function finishUpload() {
 	//Sort chunks by partNumber
-	self.uploadChunks.sort(function(a,b){
+	JSssObject.uploadChunks.sort(function(a,b){
 		if (a.PartNumber < b.PartNumber) { return false; }
 		return true;
 	});
 	//Upload
-	self.S3Api.multipartCompleteUpload(self.fileName,self.uploadID,self.uploadChunks,function (suc,respString) {
-		if (!suc) { self.emit("jsss-error",respString); }
-		self.emit("jsss-end");
+	JSssObject.S3Api.multipartCompleteUpload(JSssObject.fileName,JSssObject.uploadID,JSssObject.uploadChunks,function (suc,respString) {
+		if (!suc) { JSssObject.emit("jsss-error",respString); }
+		JSssObject.emit("jsss-end");
 	});
 };

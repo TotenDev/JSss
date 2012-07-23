@@ -12,6 +12,7 @@
 //Receive buffer in upload too, if not create one
 //ERROR EPIPE
 //Stop uploads when aborting 
+//Accept options in initialization with option object
 
 //Preferences
 var useSSL = true;
