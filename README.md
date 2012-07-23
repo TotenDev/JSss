@@ -18,16 +18,16 @@ Download and install dependencies
 
     var MultiPart = require("./src/JSss.js")("ohByBucket","MyAccessKey","mySecret","folde/theFileName.zip");
     //Register for end event
-	MultiPart.on("end",function () {
+	MultiPart.on("jsss-end",function () {
 		console.log("end");	
 	});
 	//Register for error event
-	MultiPart.on("error",function (err) {
+	MultiPart.on("jsss-error",function (err) {
 		console.log(err);
 		MultiPart.abortUpload();
 	});
 	//Upload successeded or finished
-	MultiPart.on("upload-notice",function (partNumber,status) {
+	MultiPart.on("jsss-upload-notice",function (partNumber,status) {
 		if (status) {
 			partFinished++;
 			if (partFinished == partCount) {
@@ -39,7 +39,7 @@ Download and install dependencies
 		}
 	});
 	//Must be registered to MultiPart API start
-	MultiPart.on("ready",function () {
+	MultiPart.on("jsss-ready",function () {
 		console.log("ready");
 	
 		partFinished = 0;
@@ -96,22 +96,26 @@ Sample:
 
 ## Events
 
-####Ready
+####Ready 
 This event **MUST** be registered in order to wrapper start. When this event is reached you are able to start uploading chunks.
+
+Event-String: `jsss-ready`
 
 Sample:
 
     //Must be registered to MultiPart API start
-	MultiPart.on("ready",function () {
+	MultiPart.on("jsss-ready",function () {
 		console.log("I'm ready :)");
 	}
 ---
 ####Upload Notice
 This event will be reached when an upload succeeded or failed.
 
+Event-String: `jsss-upload-notice`
+
 Sample:
 
-    MultiPart.on("upload-notice",function (partNumber,status) {
+    MultiPart.on("jsss-upload-notice",function (partNumber,status) {
 	    if (status) {
 	       console.log("success :) on part:" + partNumber);
 	    }else {
@@ -122,9 +126,11 @@ Sample:
 ####Error
 This event will be reached when an error occur in any fundamental part of upload (`start`,`finish`,`abort`).
 
+Event-String: `jsss-error`
+
 Sample:
 
-	MultiPart.on("error",function (err) {
+	MultiPart.on("jsss-error",function (err) {
 		console.log("Bad",err);
 		MultiPart.abortUpload();
 	}
@@ -132,9 +138,11 @@ Sample:
 ####End
 This event will be reached when upload finished by `abortUpload()` or `finishUpload()` OR if it didn't start properly.
 
+Event-String: `jsss-end`
+
 Sample:
 
-	MultiPart.on("end",function () {
+	MultiPart.on("jsss-end",function () {
 		console.log("Bye");
 	}
 

@@ -23,20 +23,20 @@ function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName) {
 	self = this ;
 	//Checks
 	if (!_bucketID) {
-		self.emit("error","_bucketID *REQUIRED* parameter is missing;")
-		self.emit("end");
+		self.emit("error","_bucketID *REQUIRED* parameter is missing;");/*stills emitting error, so an exception will be raise*/
+		self.emit("jsss-end");
 		return;
 	}else if (!_AWSAccessKeyID) {
-		self.emit("error","_AWSAccessKeyID *REQUIRED* parameter is missing;")
-		self.emit("end");
+		self.emit("error","_AWSAccessKeyID *REQUIRED* parameter is missing;");/*stills emitting error, so an exception will be raise*/
+		self.emit("jsss-end");
 		return;
 	}else if (!_AWSSecretAccessKey) {
-		self.emit("error","_AWSSecretAccessKey *REQUIRED* parameter is missing;")
-		self.emit("end");
+		self.emit("error","_AWSSecretAccessKey *REQUIRED* parameter is missing;");/*stills emitting error, so an exception will be raise*/
+		self.emit("jsss-end");
 		return;
 	}else if (!fileName) {
-		self.emit("error","fileName *REQUIRED* parameter is missing;")
-		self.emit("end");
+		self.emit("error","fileName *REQUIRED* parameter is missing;"); /*stills emitting error, so an exception will be raise*/
+		self.emit("jsss-end");
 		return;
 	}
 	
@@ -47,7 +47,7 @@ function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName) {
 	//AddListener newListener 
 	self.addListener("newListener",function (event,listFunction) {
 		switch (event) {
-			case "ready":{ this.getReady(); } break;
+			case "jsss-ready":{ this.getReady(); } break;
 			default: {} break;
 		}
 	});
@@ -64,10 +64,10 @@ JSss.prototype.getReady = function getReady() {
 	self.S3Api.multipartInitiateUpload(self.fileName,function (suc,initUpResp) {
 		if (suc) { 
 			self.uploadID = initUpResp;
-			self.emit("ready"/*,self.uploadID*/); 
+			self.emit("jsss-ready"/*,self.uploadID*/); 
 		} else {
-			self.emit("error",initUpResp);
-			self.emit("end");
+			self.emit("jsss-error",initUpResp);
+			self.emit("jsss-end");
 		}
 	},true);	
 };
@@ -83,8 +83,8 @@ JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
 	self.S3Api.multipartUploadChunk(self.fileName,self.uploadID,chunkPosition,chunkData,function (suc,eTag) {
 		if (suc) {
 			self.uploadChunks.push({PartNumber:chunkPosition,ETag:eTag});
-			self.emit("upload-notice",chunkPosition,true);
-		}else { self.emit("upload-notice",chunkPosition,false); }
+			self.emit("jsss-upload-notice",chunkPosition,true);
+		}else { self.emit("jsss-upload-notice",chunkPosition,false); }
 	},true);	
 };
 /**
@@ -93,8 +93,8 @@ JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
 **/
 JSss.prototype.abortUpload = function abortUpload() {
 	self.S3Api.multipartAbortUpload(self.fileName,self.uploadID,function (suc,respString) {
-		if (!suc) { self.emit("error",respString); }
-		self.emit("end");
+		if (!suc) { self.emit("jsss-error",respString); }
+		self.emit("jsss-end");
 	});
 };
 /**
@@ -110,7 +110,7 @@ JSss.prototype.finishUpload = function finishUpload() {
 	});
 	//Upload
 	self.S3Api.multipartCompleteUpload(self.fileName,self.uploadID,self.uploadChunks,function (suc,respString) {
-		if (!suc) { self.emit("error",respString); }
-		self.emit("end");
+		if (!suc) { self.emit("jsss-error",respString); }
+		self.emit("jsss-end");
 	});
 };

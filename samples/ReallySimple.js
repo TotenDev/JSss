@@ -1,21 +1,21 @@
 var MultiPart = require("./../src/JSss.js")("ohByBucket","MyAccessKey","mySecret","folde/theFileName.zip");
-MultiPart.on("end",function () {
+MultiPart.on("jsss-end",function () {
 	console.log("end");	
 });
-MultiPart.on("error",function (err) {
+MultiPart.on("jsss-error",function (err) {
 	console.log(err);	
 //	//DO NOT ABORT HERE !! - SINCE ABORT CAN RESULT IN ERROR EVENT
 //	MultiPart.abortUpload();
 });
 //Upload successeded or finished
-MultiPart.on("upload-notice",function (partNumber,status) {
+MultiPart.on("jsss-upload-notice",function (partNumber,status) {
 	partFinished++;
 	if (partFinished == partCount) {
 		MultiPart.finishUpload();
 	}
 });
 //Must be registered to MultiPart API start
-MultiPart.on("ready",function () {
+MultiPart.on("jsss-ready",function () {
 	console.log("ready");
 	
 	partFinished = 0;
