@@ -6,10 +6,12 @@
 //
 
 
-//TODO IMPLEMENT http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html
+//TODO 
+//IMPLEMENT http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html
 //Upload in other thread/child ?
 //Receive buffer in upload too, if not create one
 //ERROR EPIPE
+//Stop uploads when aborting 
 
 //Preferences
 var useSSL = true;
