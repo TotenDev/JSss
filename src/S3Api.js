@@ -324,25 +324,19 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 		//Response chuncks
 		var mutableData = "";
 		res.on("data",function (chunck) { mutableData += chunck ; });
-		//Response error 
-		
-		//(DEBUG
-		res.on("error",function (chunck) { console.log("->>>error-->>",chunck); });
-		//Response error
+		//Response end
 		res.on("end",function () {
 			//Check if already responded
 			if (!requestResponded) { requestResponded = true; }
 			else { return ; }
 			//Get Json value
 			var JSONValue = xml2json.parser(mutableData);
-			console.log("Data->",mutableData);
 			//Switch between accepted status code and non accpeteds
 			switch (res.statusCode) {
 				case _successStatusCode: {
 					//Success
 					if (callback) {
 						if (JSONValue) { 
-							console.log("S3Api->",JSONValue);
 							//Check if status code is okay, but have error root object in XML indicating an error (AWS typical behavior)
 							if (JSONValue["Error"]||JSONValue["error"]) { callback(false,JSONValue,res.headers); }
 							else { callback(true,JSONValue,res.headers);  }
