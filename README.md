@@ -1,6 +1,6 @@
 # JSss
 
-Amazon S3 Multipart upload wrapper
+Nodejs Amazon S3 Multipart upload module
 
 ## Requirements
 
@@ -28,9 +28,14 @@ Download and install dependencies
 	});
 	//Upload successeded or finished
 	MultiPart.on("upload-notice",function (partNumber,status) {
-		partFinished++;
-		if (partFinished == partCount) {
-			MultiPart.finishUpload();
+		if (status) {
+			partFinished++;
+			if (partFinished == partCount) {
+				MultiPart.finishUpload();
+			}
+		}
+		else {
+			//try again ??
 		}
 	});
 	//Must be registered to MultiPart API start
