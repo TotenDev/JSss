@@ -1,0 +1,19 @@
+{
+  "name": "JSss",
+  "description": "Amazon S3 Multipart upload wrapper",
+  "version": "0.0.1",
+  "author": "TotenDev LTDA <support@totendev.com> (http://totendev.com)",
+  "dependencies": {
+    	"aws-sign": "0.0.2",
+	"node-xml2json": "1.0.0"
+  },
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "main":"src/JSss.js",
+  "license":"MIT",
+  "repository":{
+	"type":"git",
+	"url":"git://github.com/TotenDev/JSss.git"
+  }
+}
