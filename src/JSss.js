@@ -42,7 +42,7 @@ function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName) {
 	
 	//Get API
 	self.fileName = fileName;
-	self.uploadChuncks = [];
+	self.uploadChunks = [];
 	self.S3Api = require("./S3Api.js")(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey);
 	//AddListener newListener 
 	self.addListener("newListener",function (event,listFunction) {
@@ -73,23 +73,23 @@ JSss.prototype.getReady = function getReady() {
 };
 
 /**
-* Upload Chunck function 
+* Upload Chunk function 
 * (notice this function will not call error listener, it will call upload-notice listener with positionChuck parameter and if succeeded or not.)
 *
-* @param string chunckData - Chunck to be uploaded - REQUIRED
-* @param number chunckPosition - Chunck Position, so you can upload multiple parts at same time - REQUIRED
+* @param string chunkData - Chunk to be uploaded - REQUIRED
+* @param number chunkPosition - Chunk Position, so you can upload multiple parts at same time - REQUIRED
 **/
-JSss.prototype.uploadChunck = function uploadChunck(chunckData,chunckPosition) {
-	self.S3Api.multipartUploadChunck(self.fileName,self.uploadID,chunckPosition,chunckData,function (suc,eTag) {
+JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
+	self.S3Api.multipartUploadChunk(self.fileName,self.uploadID,chunkPosition,chunkData,function (suc,eTag) {
 		if (suc) {
-			self.uploadChuncks.push({PartNumber:chunckPosition,ETag:eTag});
-			self.emit("upload-notice",chunckPosition,true);
-		}else { self.emit("upload-notice",chunckPosition,false); }
+			self.uploadChunks.push({PartNumber:chunkPosition,ETag:eTag});
+			self.emit("upload-notice",chunkPosition,true);
+		}else { self.emit("upload-notice",chunkPosition,false); }
 	},true);	
 };
 /**
 * Abort multipart upload function 
-* It'll cancel upload, and delete all uploaded chuncks.
+* It'll cancel upload, and delete all uploaded chunks.
 **/
 JSss.prototype.abortUpload = function abortUpload() {
 	self.S3Api.multipartAbortUpload(self.fileName,self.uploadID,function (suc,respString) {
@@ -103,13 +103,13 @@ JSss.prototype.abortUpload = function abortUpload() {
 * since amazon will only answer the request when all parts are together.
 **/
 JSss.prototype.finishUpload = function finishUpload() {
-	//Sort chuncks by partNumber
-	self.uploadChuncks.sort(function(a,b){
+	//Sort chunks by partNumber
+	self.uploadChunks.sort(function(a,b){
 		if (a.PartNumber < b.PartNumber) { return false; }
 		return true;
 	});
 	//Upload
-	self.S3Api.multipartCompleteUpload(self.fileName,self.uploadID,self.uploadChuncks,function (suc,respString) {
+	self.S3Api.multipartCompleteUpload(self.fileName,self.uploadID,self.uploadChunks,function (suc,respString) {
 		if (!suc) { self.emit("error",respString); }
 		self.emit("end");
 	});

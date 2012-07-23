@@ -79,7 +79,7 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 }
 
 /**
-* Upload Chunck
+* Upload Chunk
 *
 * Amazon Docs: http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPart.html
 *
@@ -92,7 +92,7 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 **/
-S3Api.prototype.multipartUploadChunck = function multipartUploadChunck(objectName,uploadID,partNumber,upData,callback,dryResp) {
+S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upData,callback,dryResp) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
@@ -324,9 +324,9 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 	//Request to endpoint
 	var req = http.request(connectionOptions,function (res) {
 		res.setEncoding('utf8');
-		//Response chuncks
+		//Response chunks
 		var mutableData = "";
-		res.on("data",function (chunck) { mutableData += chunck ; });
+		res.on("data",function (chunk) { mutableData += chunk ; });
 		//Response end
 		res.on("end",function () {
 			//Check if already responded

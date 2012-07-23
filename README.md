@@ -45,8 +45,8 @@ Download and install dependencies
 		partFinished = 0;
 		partCount = 2;
 		//All datas need to be 5MB>
-		MultiPart.uploadChunck("the big data",1);
-		MultiPart.uploadChunck("the big data2",2);
+		MultiPart.uploadChunk("the big data",1);
+		MultiPart.uploadChunk("the big data2",2);
 	});
 
 More samples at `samples/` directory.
