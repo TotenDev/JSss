@@ -87,7 +87,7 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 * @param string objectName - Name of Object in S3 bucket - REQUIRED
 * @param string uploadID - UploadID received from amazon (Upload Unique Identifier) - REQUIRED
 * @param integer partNumber - Upload part number - REQUIRED
-* @param Buffer data - Data to be uploaded - REQUIRED
+* @param string|data|Buffer data - Data to be uploaded - REQUIRED
 * @param function callback(suc,resp) - callback function called in result - OPTIONAL
 * @param boolean callback.suc - indicate a success or fail - OPTIONAL
 * @param string callback.resp - response - OPTIONAL
@@ -109,10 +109,6 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 		return; 
 	} else if (!upBuf) { 
 		var errorStr="upBuf *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
-		return; 
-	} else if (!Buffer.isBuffer(upBuf)) { 
-		var errorStr="upBuf is not a Buffer object, it should be;"; 
 		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
 		return; 
 	}
@@ -302,9 +298,9 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @cb-param boolean callback.suc - indicate a success or fail - OPTIONAL
 * @cb-param string callback.resp - response already in JSON format or not if request is errored - OPTIONAL
 * @cb-param string callback.headers - response headers - OPTIONAL
-* @param buffer bodyBuffer - Body Data - OPTIONAL
+* @param buffer|string|data bodyData - Body Data - OPTIONAL
 **/
-S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyBuffer) {
+S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData) {
 	//Helps
 	var connectionPath = _connectionPath;
 	var connectionMethod = _connectionMethod;
@@ -316,8 +312,12 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 	//Format Headers
 	var headers = {};
 	headers['Date'] = connectionDate ;
-	//BodyBuffer ?
-	if (bodyBuffer) { headers['Content-Length'] = bodyBuffer.length; }
+	//BodyData ?
+	if (bodyData) { 
+		if (!Buffer.isBuffer(bodyData)) { 
+			headers['Content-Length'] = unescape(bodyData).length;
+		}else { headers['Content-Length'] = bodyData.length; }
+	}
 	//Get signer
 	if (credentials) { 
 		var auth = new AWSSign(credentials).sign({ method: connectionMethod, bucket: bucketID, path: connectionPath, date: connectionDate }); 
@@ -373,7 +373,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 		return;
 	});
 	//write data if needed
-	if (bodyBuffer) { req.write(bodyBuffer); }
+	if (bodyData) { req.write(bodyData); }
 	//finish connection request
 	req.end();
 }

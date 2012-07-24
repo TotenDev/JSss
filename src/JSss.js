@@ -88,8 +88,6 @@ JSss.prototype.getReady = function getReady() {
 * @param number chunkPosition - Chunk Position, so you can upload multiple parts at same time - REQUIRED
 **/
 JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
-	//Check if chunkData is buffer
-	if (!Buffer.isBuffer(chunkData)) { chunkData = new Buffer(chunkData); }
 	//Upload
 	JSssObject.S3Api.multipartUploadChunk(JSssObject.fileName,JSssObject.uploadID,chunkPosition,chunkData,function (suc,eTag) {
 		if (suc) {
