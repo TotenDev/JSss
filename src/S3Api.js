@@ -8,7 +8,6 @@
 
 //TODO 
 //IMPLEMENT http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html
-//Stop uploads when aborting 
 
 //Preferences
 var useSSL = true;
@@ -38,6 +37,7 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 	//
 	bucketID = _bucketID;
 	credentials = (_AWSAccessKeyID && _AWSSecretAccessKey ? { accessKeyId: _AWSAccessKeyID, secretAccessKey:_AWSSecretAccessKey } : null);
+	currentRequests = new Array();
 }
 
 /**
@@ -58,30 +58,29 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
 		return; 
 	}
-	
 	//Helps
 	var connectionPath = encodeURI( '/' + objectName + '?uploads' );
 	var connectionMethod = 'POST';
 	//Make request
-	S3Api.simpleRequest(200,connectionPath,connectionMethod,function (suc,resp) {
-		//Successed
-		if (suc) {
-			//with callback
-			if (callback) {
-				//check for dry response
-				if (dryResp && dryResp == true) {
-					var uploadID = resp["initiatemultipartuploadresult"]["uploadid"];
-					if (resp && uploadID && uploadID.length > 0) { callback(true,uploadID); }
-					else { callback(false,"Couldn't decode AWS initial uploadID XML response."); }
-					return;
-				}else { callback(true,resp); return; }
+	S3Api.simpleRequest(200,connectionPath,connectionMethod,
+		function (suc,resp) {
+			//Successed
+			if (suc) {
+				//with callback
+				if (callback) {
+					//check for dry response
+					if (dryResp && dryResp == true) {
+						var uploadID = resp["initiatemultipartuploadresult"]["uploadid"];
+						if (resp && uploadID && uploadID.length > 0) { callback(true,uploadID); }
+						else { callback(false,"Couldn't decode AWS initial uploadID XML response."); }
+						return;
+					}else { callback(true,resp); }
+				}
 			}
-		}
-		//errored, but with callback
-		else if (callback) { callback(false,resp); }
-		//errored without callback
-		else { console.error(resp); } 
-		return;
+			//errored, but with callback
+			else if (callback) { callback(false,resp); }
+			//errored without callback
+			else { console.error(resp); } 
 	});
 }
 
@@ -124,25 +123,25 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 	var connectionMethod = 'PUT';
 	
 	//Make request
-	S3Api.simpleRequest(200,connectionPath,connectionMethod,function (suc,resp,headers) {
-		//Successed
-		if (suc) {
-			//with callback
-			if (callback) {
-				//check for dry response
-				if (dryResp && dryResp == true) {
-					var eTag = headers["etag"];
-					if (headers && eTag && eTag.length > 0) { callback(true,eTag); }
-					else { callback(false,"Couldn't decode AWS eTag XML response."); } 
-					return;
-				}else { callback(true,headers); return; }
+	S3Api.simpleRequest(200,connectionPath,connectionMethod,
+		function (suc,resp,headers) {
+			//Successed
+			if (suc) {
+				//with callback
+				if (callback) {
+					//check for dry response
+					if (dryResp && dryResp == true) {
+						var eTag = headers["etag"];
+						if (headers && eTag && eTag.length > 0) { callback(true,eTag); }
+						else { callback(false,"Couldn't decode AWS eTag XML response."); } 
+						return;
+					}else { callback(true,headers); }
+				}
 			}
-		}
-		//errored, but with callback
-		else if (callback) { callback(false,resp); }
-		//errored without callback
-		else { console.error(resp); } 
-		return;
+			//errored, but with callback
+			else if (callback) { callback(false,resp); }
+			//errored without callback
+			else { console.error(resp); } 
 	},upBuf);
 }
 
@@ -173,17 +172,17 @@ S3Api.prototype.multipartListPartsUpload = function multipartListPartsUpload(obj
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'GET';
 	//Make request
-	S3Api.simpleRequest(200,connectionPath,connectionMethod,function (suc,resp) {
-		//Successed
-		if (suc) {
-			//with callback
-			if (callback) { callback(true,resp);  }
-		}
-		//errored, but with callback
-		else if (callback) { callback(false,resp); }
-		//errored without callback
-		else { console.error(resp); } 
-		return;
+	S3Api.simpleRequest(200,connectionPath,connectionMethod,
+		function (suc,resp) {
+			//Successed
+			if (suc) {
+				//with callback
+				if (callback) { callback(true,resp);  }
+			}
+			//errored, but with callback
+			else if (callback) { callback(false,resp); }
+			//errored without callback
+			else { console.error(resp); } 
 	});
 }
 
@@ -213,18 +212,21 @@ S3Api.prototype.multipartAbortUpload = function multipartAbortUpload(objectName,
 	//Helps
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'DELETE';
+	//cancel all requests and remove from `currentRequests`
+	for (var idx in currentRequests) { currentRequests[idx].abort(); }
+	currentRequests.splice(0,currentRequests.length);
 	//Make request
-	S3Api.simpleRequest(204,connectionPath,connectionMethod,function (suc,resp) {
-		//Successed
-		if (suc) {
-			//with callback
-			if (callback) { callback(true,resp);  }
-		}
-		//errored, but with callback
-		else if (callback) { callback(false,resp); }
-		//errored without callback
-		else { console.error(resp); } 
-		return;
+	S3Api.simpleRequest(204,connectionPath,connectionMethod,
+		function (suc,resp) {
+			//Successed
+			if (suc) {
+				//with callback
+				if (callback) { callback(true,resp);  }
+			}
+			//errored, but with callback
+			else if (callback) { callback(false,resp); }
+			//errored without callback
+			else { console.error(resp); } 
 	});
 }
 
@@ -263,17 +265,17 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 	var bodyData = S3Api.formatCompleteBodyXML(partsRef);
 	if (bodyData) {
 		//Make request
-		S3Api.simpleRequest(200,connectionPath,connectionMethod,function (suc,resp) {
-			//Successed
-			if (suc) {
-				//with callback
-				if (callback) { callback(true,resp);  }
-			}
-			//errored, but with callback
-			else if (callback) { callback(false,resp); }
-			//errored without callback
-			else { console.error(resp); } 
-			return;
+		S3Api.simpleRequest(200,connectionPath,connectionMethod,
+			function (suc,resp) {
+				//Successed
+				if (suc) {
+					//with callback
+					if (callback) { callback(true,resp);  }
+				}
+				//errored, but with callback
+				else if (callback) { callback(false,resp); }
+				//errored without callback
+				else { console.error(resp); } 
 		},bodyData);	
 	}
 	else {
@@ -281,7 +283,6 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 		var errMsg = "Couldn't format bodyData XML from partRefs.";
 		if (callback) { callback(false,errMsg); }
 		else { console.error(errMsg); } 
-		return;
 	}
 }
 
@@ -343,6 +344,9 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 			//Check if already responded
 			if (!requestResponded) { requestResponded = true; }
 			else { return ; }
+			//Remove connection from stack
+			var idx = currentRequests.indexOf(req);
+			if (idx != -1) { currentRequests.splice(idx,1); }
 			//Get Json value
 			var JSONValue = xml2json.parser(mutableData);
 			//Switch between accepted status code and non accpeteds
@@ -355,33 +359,35 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 							if (JSONValue["Error"]||JSONValue["error"]) { callback(false,JSONValue,res.headers); }
 							else { callback(true,JSONValue,res.headers);  }
 						}else { callback(true,null,res.headers); }
-						return;
 					}
 				} break;
 				default: {
 					//Error
 					console.error("Error statusCode:" + res.statusCode);
 					if (callback) { callback(false,JSONValue,res.headers); }else { console.error(JSONValue); }
-					return;
 				} break;
 			}
 		});
 	});
-	
+	//Add in connection stack
+	currentRequests.push(req);
 	//Response error
 	req.on("error",function (err) {
 		//Check if already responded
 		if (!requestResponded) { requestResponded = true; }
 		else { return ; }
+		//Remove connection from stack
+		var idx = currentRequests.indexOf(req);
+		if (idx != -1) { currentRequests.splice(idx,1); }
 		//Error
 		var errMsg = "Request errored: " + err;
 		if (callback) { callback(false,errMsg,null); }else { console.error(errMsg); }
-		return;
 	});
 	//write data if needed
 	if (bodyData) { req.write(bodyData); }
 	//finish connection request
 	req.end();
+	return req;
 }
 /**
 * Format AWS Complete Upload Body (Should be used for all MultipartCompleteUpload request)

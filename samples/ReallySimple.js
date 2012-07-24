@@ -11,7 +11,9 @@ MultiPart.on("jsss-error",function (err) {
 MultiPart.on("jsss-upload-notice",function (partNumber,status) {
 	partFinished++;
 	if (partFinished == partCount) {
-		MultiPart.finishUpload();
+		//we should check all uploads status, but it's an example !!
+		if (status) { MultiPart.finishUpload(); }
+		else { MultiPart.abortUpload(); }
 	}
 });
 //Must be registered to MultiPart API start
@@ -21,6 +23,6 @@ MultiPart.on("jsss-ready",function () {
 	partFinished = 0;
 	partCount = 2;
 	//All datas need to be 5MB>
-	MultiPart.uploadChunk("the big data",1);
-	MultiPart.uploadChunk("the big data2",2);
+	MultiPart.uploadChunk("the big daaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaata",1);
+	MultiPart.uploadChunk("the big daaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaata2",2);
 });

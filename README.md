@@ -101,6 +101,7 @@ Sample:
 
 ####Ready 
 This event **MUST** be registered in order to wrapper start. When this event is reached you are able to start uploading chunks.
+Do **NOT** call `terminate` or `abort` method from error event, since those methods can emit an error event.
 
 Event-String: `jsss-ready`
 
