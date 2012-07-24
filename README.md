@@ -61,10 +61,13 @@ Parameters:
 * AWSAccessKeyID - **Type:**string - **Description:**AWS AccessKeyID - **REQUIRED**
 * AWSSecretAccessKey - **Type:**string - **Description:**AWS SecretAccessKey - **REQUIRED**
 * fileName - **Type:**string - **Description:**fileName to be on S3 - **REQUIRED**
+* options - **Type:**OptionObject - **Description:**Options Object - **OPTIONAL**
+* options.endPoint - **Type:**string - **Description:**End point to be used, default `s3.amazonaws.com` - **OPTIONAL**
+* options.useSSL - **Type:**boolean - **Description:**Use SSL or not, default is true - **OPTIONAL**
 
 Sample:
 
-    var MultiPart = require("./src/JSss.js")("myBucket","AWSAccessKey","AWSSecretAccessKey","fileNameToBeUp");
+    var MultiPart = require("./src/JSss.js")("myBucket","AWSAccessKey","AWSSecretAccessKey","fileNameToBeUp",);
 ---
 #### Upload Chunk
 

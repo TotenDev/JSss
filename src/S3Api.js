@@ -8,9 +8,7 @@
 
 //TODO 
 //IMPLEMENT http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html
-//Upload in other thread/child ?
 //Stop uploads when aborting 
-//Accept options in initialization with option object
 
 //Preferences
 var useSSL = true;
@@ -27,9 +25,17 @@ var AWSSign = require('aws-sign'),
 * @param string bucketID - Name of Object in S3 bucket   - REQUIRED
 * @param string AWSAccessKeyID - AWS AccessKeyID         - REQUIRED
 * @param string AWSSecretAccessKey - AWS SecretAccessKey - REQUIRED
+* @param Object options - options object - OPTIONAL
+* @param string options.endPoint - End point to be used, default `s3.amazonaws.com` - OPTIONAL
+* @param bool options.useSSL - Use SSL or not, default is true - OPTIONAL
 **/
-module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey) { return new S3Api(bucketID,AWSAccessKeyID,AWSSecretAccessKey); }
-function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey) {
+module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,options) { return new S3Api(bucketID,AWSAccessKeyID,AWSSecretAccessKey,options); }
+function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
+	//Check for endpoint
+	if (options && options["endPoint"]) { endPoint = options["endPoint"]; }
+	//Check for SSL use
+	if (options && options["useSSL"] == false) { useSSL = options["useSSL"]; }
+	//
 	bucketID = _bucketID;
 	credentials = (_AWSAccessKeyID && _AWSSecretAccessKey ? { accessKeyId: _AWSAccessKeyID, secretAccessKey:_AWSSecretAccessKey } : null);
 }

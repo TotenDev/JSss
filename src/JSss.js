@@ -16,9 +16,12 @@ var util = require ('util'),
 * @param string AWSAccessKeyID - AWS AccessKeyID         - REQUIRED
 * @param string AWSSecretAccessKey - AWS SecretAccessKey - REQUIRED
 * @param string fileName - fileName to be on S3          - REQUIRED
+* @param Object options - options object 		         - OPTIONAL
+* @param string options.endPoint - End point to be used, default `s3.amazonaws.com` - OPTIONAL
+* @param bool options.useSSL - Use SSL or not, default is true - OPTIONAL
 **/
-module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName) { return new JSss(bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName); }
-function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName) {
+module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName,options) { return new JSss(bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName,options); }
+function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName,options) {
 	//JSssObject
 	JSssObject = this ;
 	//Checks
@@ -51,7 +54,7 @@ function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName) {
 	//Get API
 	JSssObject.fileName = fileName;
 	JSssObject.uploadChunks = [];
-	JSssObject.S3Api = require("./S3Api.js")(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey);
+	JSssObject.S3Api = require("./S3Api.js")(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options);
 	//AddListener newListener 
 	JSssObject.addListener("newListener",function (event,listFunction) {
 		switch (event) {
