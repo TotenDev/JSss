@@ -71,7 +71,7 @@ Sample:
 Notice this function will not call error listener, it will call upload-notice listener with positionChuck parameter and if succeeded or not, so you can try to re-upload that part if you want.
 
 Parameters:
-- chunkData - **Type:**string - **Description:**Chunk to be uploaded - **REQUIRED**
+- chunkData - **Type:**string || Buffer - **Description:**Chunk to be uploaded - **REQUIRED**
 - chunkPosition - **Type:**number - **Description:**Chunk Position, so you can upload multiple parts at same time - **REQUIRED**
 
 Sample:

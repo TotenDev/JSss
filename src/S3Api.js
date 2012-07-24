@@ -9,8 +9,6 @@
 //TODO 
 //IMPLEMENT http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html
 //Upload in other thread/child ?
-//Receive buffer in upload too, if not create one
-//ERROR EPIPE
 //Stop uploads when aborting 
 //Accept options in initialization with option object
 
@@ -89,13 +87,13 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 * @param string objectName - Name of Object in S3 bucket - REQUIRED
 * @param string uploadID - UploadID received from amazon (Upload Unique Identifier) - REQUIRED
 * @param integer partNumber - Upload part number - REQUIRED
-* @param data||string data - Data to be uploaded - REQUIRED
+* @param Buffer data - Data to be uploaded - REQUIRED
 * @param function callback(suc,resp) - callback function called in result - OPTIONAL
 * @param boolean callback.suc - indicate a success or fail - OPTIONAL
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 **/
-S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upData,callback,dryResp) {
+S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
@@ -109,8 +107,12 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 		var errorStr="partNumber *REQUIRED* parameter is missing;"; 
 		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
 		return; 
-	} else if (!upData) { 
-		var errorStr="upData *REQUIRED* parameter is missing;"; 
+	} else if (!upBuf) { 
+		var errorStr="upBuf *REQUIRED* parameter is missing;"; 
+		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		return; 
+	} else if (!Buffer.isBuffer(upBuf)) { 
+		var errorStr="upBuf is not a Buffer object, it should be;"; 
 		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
 		return; 
 	}
@@ -139,7 +141,7 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 		//errored without callback
 		else { console.error(resp); } 
 		return;
-	},upData);
+	},upBuf);
 }
 
 /**
@@ -300,9 +302,9 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @cb-param boolean callback.suc - indicate a success or fail - OPTIONAL
 * @cb-param string callback.resp - response already in JSON format or not if request is errored - OPTIONAL
 * @cb-param string callback.headers - response headers - OPTIONAL
-* @param string bodyData - Body Data - OPTIONAL
+* @param buffer bodyBuffer - Body Data - OPTIONAL
 **/
-S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData) {
+S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyBuffer) {
 	//Helps
 	var connectionPath = _connectionPath;
 	var connectionMethod = _connectionMethod;
@@ -314,8 +316,8 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 	//Format Headers
 	var headers = {};
 	headers['Date'] = connectionDate ;
-	//BodyData ?
-	if (bodyData) { headers['Content-Length'] = unescape(bodyData).length; }
+	//BodyBuffer ?
+	if (bodyBuffer) { headers['Content-Length'] = bodyBuffer.length; }
 	//Get signer
 	if (credentials) { 
 		var auth = new AWSSign(credentials).sign({ method: connectionMethod, bucket: bucketID, path: connectionPath, date: connectionDate }); 
@@ -371,7 +373,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 		return;
 	});
 	//write data if needed
-	if (bodyData) { req.write(bodyData); }
+	if (bodyBuffer) { req.write(bodyBuffer); }
 	//finish connection request
 	req.end();
 }

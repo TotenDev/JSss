@@ -84,10 +84,13 @@ JSss.prototype.getReady = function getReady() {
 * Upload Chunk function 
 * (notice this function will not call error listener, it will call upload-notice listener with positionChuck parameter and if succeeded or not.)
 *
-* @param string chunkData - Chunk to be uploaded - REQUIRED
+* @param string|data|Buffer chunkData - Chunk to be uploaded - REQUIRED
 * @param number chunkPosition - Chunk Position, so you can upload multiple parts at same time - REQUIRED
 **/
 JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
+	//Check if chunkData is buffer
+	if (!Buffer.isBuffer(chunkData)) { chunkData = new Buffer(chunkData); }
+	//Upload
 	JSssObject.S3Api.multipartUploadChunk(JSssObject.fileName,JSssObject.uploadID,chunkPosition,chunkData,function (suc,eTag) {
 		if (suc) {
 			JSssObject.uploadChunks.push({PartNumber:chunkPosition,ETag:eTag});
