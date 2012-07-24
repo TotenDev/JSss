@@ -67,7 +67,7 @@ Parameters:
 
 Sample:
 
-    var MultiPart = require("./src/JSss.js")("myBucket","AWSAccessKey","AWSSecretAccessKey","fileNameToBeUp",);
+    var MultiPart = require("./src/JSss.js")("myBucket","AWSAccessKey","AWSSecretAccessKey","fileNameToBeUp",{ endPoint:"secondary.s3.com",useSSL:false });
 ---
 #### Upload Chunk
 
