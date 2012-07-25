@@ -3,7 +3,7 @@ MultiPart.on("jsss-end",function () {
 	console.log("end");	
 });
 MultiPart.on("jsss-error",function (err) {
-	console.log(err);	
+	console.log("->",err);	
 //	//DO NOT ABORT HERE !! - SINCE ABORT CAN RESULT IN ERROR EVENT
 //	MultiPart.abortUpload();
 });

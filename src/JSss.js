@@ -77,8 +77,8 @@ JSss.prototype.getReady = function getReady() {
 			JSssObject.uploadID = initUpResp;
 			JSssObject.emit("jsss-ready"/*,JSssObject.uploadID*/); 
 		} else {
-			JSssObject.emit("jsss-error",initUpResp);
-			JSssObject.emit("jsss-end");
+			JSssObject.emitOnce("jsss-error",initUpResp);
+			JSssObject.emitOnce("jsss-end");
 		}
 	},true);	
 };
@@ -105,8 +105,8 @@ JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
 **/
 JSss.prototype.abortUpload = function abortUpload() {
 	JSssObject.S3Api.multipartAbortUpload(JSssObject.fileName,JSssObject.uploadID,function (suc,respString) {
-		if (!suc) { JSssObject.emit("jsss-error",respString); }
-		JSssObject.emit("jsss-end");
+		if (!suc) { JSssObject.emitOnce("jsss-error",respString); }
+		JSssObject.emitOnce("jsss-end");
 	});
 };
 /**
@@ -122,7 +122,20 @@ JSss.prototype.finishUpload = function finishUpload() {
 	});
 	//Upload
 	JSssObject.S3Api.multipartCompleteUpload(JSssObject.fileName,JSssObject.uploadID,JSssObject.uploadChunks,function (suc,respString) {
-		if (!suc) { JSssObject.emit("jsss-error",respString); }
-		JSssObject.emit("jsss-end");
+		if (!suc) { JSssObject.emitOnce("jsss-error",respString); }
+		JSssObject.emitOnce("jsss-end");
 	});
+};
+
+
+
+
+/**
+* It'll emit and remove listener after it
+**/
+JSss.prototype.emitOnce = function emitOnce(event) {
+	//Emit
+	JSssObject.emit.apply(JSssObject,arguments);
+	//remove listener
+	JSssObject.removeAllListeners(event);
 };
