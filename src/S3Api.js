@@ -14,7 +14,6 @@ var useSSL = true;
 var endPoint = "s3.amazonaws.com";
 //Imports
 var AWSSign = require('aws-sign'),
-	http = (useSSL ? require('https') : require('http')),
 	util = require ('util'),
 	xml2json = require("node-xml2json");
 
@@ -34,6 +33,8 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 	if (options && options["endPoint"]) { endPoint = options["endPoint"]; }
 	//Check for SSL use
 	if (options && options["useSSL"] == false) { useSSL = options["useSSL"]; }
+	//Get http
+	http = (useSSL ? require('https') : require('http'));
 	//
 	bucketID = _bucketID;
 	credentials = (_AWSAccessKeyID && _AWSSecretAccessKey ? { accessKeyId: _AWSAccessKeyID, secretAccessKey:_AWSSecretAccessKey } : null);
