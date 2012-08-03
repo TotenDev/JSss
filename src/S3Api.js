@@ -41,6 +41,58 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 	currentRequests = new Array();
 }
 
+
+/**
+* Single Upload
+*
+* Amazon Docs: http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectPUT.html
+*
+* @param string objectName - Name of Object in S3 bucket - REQUIRED
+* @param string|data|Buffer data - Data to be uploaded - REQUIRED
+* @param function callback(suc,resp) - callback function called in result - OPTIONAL
+* @param boolean callback.suc - indicate a success or fail - OPTIONAL
+* @param string callback.resp - response - OPTIONAL
+* @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
+**/
+S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp) {
+	//Checks
+	if (!objectName) { 
+		var errorStr="objectName *REQUIRED* parameter is missing;"; 
+		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		return; 
+	} else if (!upBuf) { 
+		var errorStr="upBuf *REQUIRED* parameter is missing;"; 
+		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		return; 
+	}
+	
+	//Helps
+	var connectionPath = encodeURI( '/' + objectName );
+	var connectionMethod = 'PUT';
+	
+	//Make request
+	S3Api.simpleRequest(200,connectionPath,connectionMethod,
+		function (suc,resp,headers) {
+			//Successed
+			if (suc) {
+				//with callback
+				if (callback) {
+					//check for dry response
+					if (dryResp && dryResp == true) {
+						var eTag = headers["etag"];
+						if (headers && eTag && eTag.length > 0) { callback(true,eTag); }
+						else { callback(false,"Couldn't decode AWS eTag XML response."); } 
+						return;
+					}else { callback(true,headers); }
+				}
+			}
+			//errored, but with callback
+			else if (callback) { callback(false,resp); }
+			//errored without callback
+			else { console.error(resp); } 
+	},upBuf);
+}
+
 /**
 * Initialize Multipart upload
 *
@@ -348,8 +400,10 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 			//Remove connection from stack
 			var idx = currentRequests.indexOf(req);
 			if (idx != -1) { currentRequests.splice(idx,1); }
-			//Get Json value
-			var JSONValue = xml2json.parser(mutableData);
+			//Try to get Json value
+			var JSONValue = '';
+			try { JSONValue = xml2json.parser(mutableData);
+			}catch (err) { JSONValue = false; console.error("Exception on `xml2json` dependence.",err.stack);}
 			//Switch between accepted status code and non accpeteds
 			switch (res.statusCode) {
 				case _successStatusCode: {
