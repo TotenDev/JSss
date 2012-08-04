@@ -2,8 +2,11 @@
 
 Nodejs Amazon S3 Multipart upload module
 
+[![Build Status](https://secure.travis-ci.org/TotenDev/JSss.png?branch=master)](http://travis-ci.org/TotenDev/JSss)
+
 ## Requirements
 
+- [node](https://github.com/joyent/node)
 - [npm](https://github.com/isaacs/npm)
 - [node-aws-sign](https://github.com/egorFiNE/node-aws-sign) (signs AWS requests)
 - [node-xml2json](https://github.com/buglabs/node-xml2json) (decode AWS requests)

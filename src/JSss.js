@@ -105,6 +105,7 @@ JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition) {
 **/
 JSss.prototype.abortUpload = function abortUpload() {
 	var thisRef = this;
+	//Abort upload, this will erase all uploaded files
 	this.S3Api.multipartAbortUpload(this.fileName,this.uploadID,function (suc,respString) {
 		if (!suc) { thisRef.emitOnce("jsss-error",respString); }
 		thisRef.emitOnce("jsss-end");
@@ -122,15 +123,12 @@ JSss.prototype.finishUpload = function finishUpload() {
 		if (a.PartNumber < b.PartNumber) { return false; }
 		return true;
 	});
-	//Upload
+	//Complete multipart (Amazon will merge all parts on this request
 	this.S3Api.multipartCompleteUpload(this.fileName,this.uploadID,this.uploadChunks,function (suc,respString) {
 		if (!suc) { this.emitOnce("jsss-error",respString); }
 		this.emitOnce("jsss-end");
-	});
+	});	
 };
-
-
-
 
 /**
 * It'll emit and remove listener after it

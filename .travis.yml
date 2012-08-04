@@ -1,0 +1,17 @@
+language: node_js
+node_js:
+  - 0.4
+  - 0.5
+  - 0.6
+  - 0.7
+  - 0.8
+script: 
+  - "node samples/Usage-Options.js"
+  - "node samples/Usage-Simple.js"
+  - "node samples/Usage-Buffer.js"
+  - "node src/JSss.js"
+  - "node src/S3Api.js"
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.org#TotenDev"
