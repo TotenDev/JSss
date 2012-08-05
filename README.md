@@ -27,7 +27,6 @@ Download and install dependencies
 	//Register for error event
 	MultiPart.on("jsss-error",function (err) {
 		console.log(err);
-		MultiPart.abortUpload();
 	});
 	//Upload successeded or finished
 	MultiPart.on("jsss-upload-notice",function (partNumber,status) {
