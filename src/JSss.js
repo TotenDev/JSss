@@ -6,7 +6,7 @@
 //
 
 var util = require ('util'),
-	inherits = require('util').inherits,
+	inherits = util.inherits,
 	EventEmitter = require('events').EventEmitter;
 	
 /**

@@ -139,7 +139,6 @@ Sample:
 
 	MultiPart.on("jsss-error",function (err) {
 		console.log("Bad",err);
-		MultiPart.abortUpload();
 	}
 ---
 ####End
