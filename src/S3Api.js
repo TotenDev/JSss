@@ -5,17 +5,14 @@
 // see LICENSE for details.
 //
 
-
-//TODO 
-//IMPLEMENT http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html
-
 //Preferences
 var useSSL = true;
 var endPoint = "s3.amazonaws.com";
 //Imports
 var AWSSign = require('aws-sign'),
 	util = require ('util'),
-	xml2json = require("node-xml2json");
+	xml2json = require("node-xml2json"),
+	debug = (process.argv.indexOf('--debug') != -1 ? console.error : function () {});
 
 /**
 * Initialize S3Api function
@@ -58,11 +55,11 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	} else if (!upBuf) { 
 		var errorStr="upBuf *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
 	
@@ -89,7 +86,7 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 			//errored, but with callback
 			else if (callback) { callback(false,resp); }
 			//errored without callback
-			else { console.error(resp); } 
+			else { debug("*S3Api*",resp); } 
 	},upBuf);
 }
 
@@ -108,7 +105,7 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
 	//Helps
@@ -133,7 +130,7 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 			//errored, but with callback
 			else if (callback) { callback(false,resp); }
 			//errored without callback
-			else { console.error(resp); } 
+			else { debug("*S3Api*",resp); } 
 	});
 }
 
@@ -155,19 +152,19 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	} else if (!uploadID) { 
 		var errorStr="uploadID *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	} else if (!partNumber) { 
 		var errorStr="partNumber *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	} else if (!upBuf) { 
 		var errorStr="upBuf *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
 	
@@ -194,7 +191,7 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 			//errored, but with callback
 			else if (callback) { callback(false,resp); }
 			//errored without callback
-			else { console.error(resp); } 
+			else { debug("*S3Api*",resp); } 
 	},upBuf);
 }
 
@@ -213,11 +210,11 @@ S3Api.prototype.multipartListPartsUpload = function multipartListPartsUpload(obj
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	} else if (!uploadID) { 
 		var errorStr="uploadID *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
 	
@@ -235,7 +232,7 @@ S3Api.prototype.multipartListPartsUpload = function multipartListPartsUpload(obj
 			//errored, but with callback
 			else if (callback) { callback(false,resp); }
 			//errored without callback
-			else { console.error(resp); } 
+			else { debug("*S3Api*",resp); } 
 	});
 }
 
@@ -254,11 +251,11 @@ S3Api.prototype.multipartAbortUpload = function multipartAbortUpload(objectName,
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	} else if (!uploadID) { 
 		var errorStr="uploadID *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
 	
@@ -279,7 +276,7 @@ S3Api.prototype.multipartAbortUpload = function multipartAbortUpload(objectName,
 			//errored, but with callback
 			else if (callback) { callback(false,resp); }
 			//errored without callback
-			else { console.error(resp); } 
+			else { debug("*S3Api*",resp); } 
 	});
 }
 
@@ -299,15 +296,15 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	} else if (!uploadID) { 
 		var errorStr="uploadID *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	} else if (!partsRef) { 
 		var errorStr="partsRef *REQUIRED* parameter is missing;"; 
-		if (callback) { callback(false,errorStr); }else{ console.error(errorStr); } 
+		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
 	
@@ -328,14 +325,14 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 				//errored, but with callback
 				else if (callback) { callback(false,resp); }
 				//errored without callback
-				else { console.error(resp); } 
+				else { debug("*S3Api*",resp); } 
 		},bodyData);	
 	}
 	else {
 		//errored, but with callback
 		var errMsg = "Couldn't format bodyData XML from partRefs.";
 		if (callback) { callback(false,errMsg); }
-		else { console.error(errMsg); } 
+		else { debug("*S3Api*",errMsg); } 
 	}
 }
 
@@ -387,6 +384,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 	connectionOptions["headers"] = headers;
 	var requestResponded = false;
 	//Request to endpoint
+	debug("*S3Api* Starting S3 request:",connectionPath);
 	var req = http.request(connectionOptions,function (res) {
 		res.setEncoding('utf8');
 		//Response chunks
@@ -403,7 +401,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 			//Try to get Json value
 			var JSONValue = '';
 			try { JSONValue = xml2json.parser(mutableData);
-			}catch (err) { JSONValue = false; console.error("Exception on `xml2json` dependence.",err.stack);}
+			}catch (err) { JSONValue = false; debug("*S3Api* Exception on `xml2json` dependence.",err.stack);}
 			//Switch between accepted status code and non accpeteds
 			switch (res.statusCode) {
 				case _successStatusCode: {
@@ -418,8 +416,8 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 				} break;
 				default: {
 					//Error
-					console.error("Error statusCode:" + res.statusCode);
-					if (callback) { callback(false,JSONValue,res.headers); }else { console.error(JSONValue); }
+					debug("*S3Api* Error statusCode:" + res.statusCode);
+					if (callback) { callback(false,JSONValue,res.headers); }else { debug("*S3Api*",JSONValue); }
 				} break;
 			}
 		});
@@ -428,6 +426,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 	currentRequests.push(req);
 	//Response error
 	req.on("error",function (err) {
+		debug("*S3Api* err",err);
 		//Check if already responded
 		if (!requestResponded) { requestResponded = true; }
 		else { return ; }
@@ -436,7 +435,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 		if (idx != -1) { currentRequests.splice(idx,1); }
 		//Error
 		var errMsg = "Request errored: " + err;
-		if (callback) { callback(false,errMsg,null); }else { console.error(errMsg); }
+		if (callback) { callback(false,errMsg,null); }else { debug("*S3Api*",errMsg); }
 	});
 	//write data if needed
 	if (bodyData) { req.write(bodyData); }

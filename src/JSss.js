@@ -7,7 +7,8 @@
 
 var util = require ('util'),
 	inherits = util.inherits,
-	EventEmitter = require('events').EventEmitter;
+	EventEmitter = require('events').EventEmitter,
+	debug = (process.argv.indexOf('--debug') != -1 ? console.error : function () {});
 	
 /**
 * Initialize JSss function
@@ -24,26 +25,26 @@ module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName,o
 function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName,options) {
 	//Checks
 	if (!_bucketID) {
-		var errMsg = "_bucketID *REQUIRED* parameter is missing;";
-		console.error(errMsg);
+		var errMsg = "*JSss* _bucketID *REQUIRED* parameter is missing;";
+		debug(errMsg);
 		this.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
 		this.emit("jsss-end");
 		return;
 	}else if (!_AWSAccessKeyID) {
-		var errMsg = "_AWSAccessKeyID *REQUIRED* parameter is missing;";
-		console.error(errMsg);
+		var errMsg = "*JSss* _AWSAccessKeyID *REQUIRED* parameter is missing;";
+		debug(errMsg);
 		this.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
 		this.emit("jsss-end");
 		return;
 	}else if (!_AWSSecretAccessKey) {
-		var errMsg = "_AWSSecretAccessKey *REQUIRED* parameter is missing;";
-		console.error(errMsg);
+		var errMsg = "*JSss* _AWSSecretAccessKey *REQUIRED* parameter is missing;";
+		debug(errMsg);
 		this.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
 		this.emit("jsss-end");
 		return;
 	}else if (!fileName) {
-		var errMsg = "fileName *REQUIRED* parameter is missing;";
-		console.error(errMsg);
+		var errMsg = "*JSss* fileName *REQUIRED* parameter is missing;";
+		debug(errMsg);
 		this.emit("error",errMsg); /*stills emitting error, so an exception will be raise*/
 		this.emit("jsss-end");
 		return;
