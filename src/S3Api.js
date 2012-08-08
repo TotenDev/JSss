@@ -50,8 +50,9 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 * @param boolean callback.suc - indicate a success or fail - OPTIONAL
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
+* @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
 **/
-S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp) {
+S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp,optionalEnconding) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
@@ -87,7 +88,7 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf);
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'));
 }
 
 /**
@@ -147,8 +148,9 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 * @param boolean callback.suc - indicate a success or fail - OPTIONAL
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
+* @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
 **/
-S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp) {
+S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp,optionalEnconding) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
@@ -192,7 +194,7 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf);
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'));
 }
 
 /**
@@ -356,8 +358,9 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @cb-param string callback.resp - response already in JSON format or not if request is errored - OPTIONAL
 * @cb-param string callback.headers - response headers - OPTIONAL
 * @param buffer|string|data bodyData - Body Data - OPTIONAL
+* @param string encodingBody - request body enconding. - OPTIONAL
 **/
-S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData) {
+S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData,encodingBody) {
 	//Helps
 	var connectionPath = _connectionPath;
 	var connectionMethod = _connectionMethod;
@@ -438,7 +441,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 		if (callback) { callback(false,errMsg,null); }else { debug("*S3Api*",errMsg); }
 	});
 	//write data if needed
-	if (bodyData) { req.write(bodyData); }
+	if (bodyData) { req.write(bodyData,encodingBody); }
 	//finish connection request
 	req.end();
 	return req;
