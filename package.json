@@ -1,7 +1,7 @@
 {
   "name": "jsss",
   "description": "Amazon S3 Multipart upload wrapper",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "author": "TotenDev LTDA <support@totendev.com> (http://totendev.com)",
   "dependencies": {
     	"aws-sign": "0.0.2",

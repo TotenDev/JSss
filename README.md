@@ -70,6 +70,7 @@ Parameters:
 Sample:
 
     var MultiPart = require("./src/JSss.js")("myBucket","AWSAccessKey","AWSSecretAccessKey","fileNameToBeUp",{ endPoint:"secondary.s3.com",useSSL:false });
+    
 ---
 #### Upload Chunk
 
@@ -78,10 +79,12 @@ Notice this function will not call error listener, it will call upload-notice li
 Parameters:
 - chunkData - **Type:**string || Buffer - **Description:**Chunk to be uploaded - **REQUIRED**
 - chunkPosition - **Type:**number - **Description:**Chunk Position, so you can upload multiple parts at same time - **REQUIRED**
+- fileEncoding - **Type:**number - **Description:**Which encoding to use when uploading. Default is `utf8` - **OPTIONAL**
 
 Sample:
 
-    MultiPart.uploadChunk(chunkData,chunkPosition);
+    MultiPart.uploadChunk(chunkData,chunkPosition,'binary');
+    
 ---
 #### Finish Upload
 This method will finish upload, and can take a bit long for large files, since amazon will only answer the request when all parts are together.
