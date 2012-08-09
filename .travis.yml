@@ -12,6 +12,7 @@ script:
   - "node src/JSss.js"
   - "node src/S3Api.js"
 notifications:
+  email: dev@totendev.com
   irc:
     channels:
       - "irc.freenode.org#TotenDev"
