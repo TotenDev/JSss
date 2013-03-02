@@ -4,8 +4,8 @@
   "version": "0.0.19",
   "author": "TotenDev LTDA <support@totendev.com> (http://totendev.com)",
   "dependencies": {
-    	"aws-sign": "0.0.2",
-	"node-xml2json": "1.0.0"
+    	"aws-sign": "0.1.1",
+		"node-xml2json": "1.x.x"
   },
   "engines": {
     "node": ">= 0.4"
