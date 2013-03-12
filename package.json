@@ -1,11 +1,11 @@
 {
   "name": "jsss",
   "description": "Amazon S3 Multipart upload wrapper",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "author": "TotenDev LTDA <support@totendev.com> (http://totendev.com)",
   "dependencies": {
     	"aws-sign": "0.1.1",
-		"node-xml2json": "1.x.x"
+	"node-xml2json": "1.x.x"
   },
   "engines": {
     "node": ">= 0.4"
@@ -20,11 +20,5 @@
    "name": "Gabriel Wady",
    "email": "gabriel@totendev.com"
   }],
-  "keywords": [
-       "AWS",
-       "Amazon",
-	   "S3",
-	   "Multipart",
-	   "upload"
-   ]
+  "keywords": [ "AWS","Amazon","S3","Multipart","upload" ]
 }
