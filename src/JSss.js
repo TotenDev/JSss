@@ -127,8 +127,8 @@ JSss.prototype.finishUpload = function finishUpload() {
 	});
 	//Complete multipart (Amazon will merge all parts on this request
 	this.S3Api.multipartCompleteUpload(this.fileName,this.uploadID,this.uploadChunks,function (suc,respString) {
-		if (!suc) { this.emitOnce("jsss-error",respString); }
-		this.emitOnce("jsss-end");
+		if (!suc) { thisRef.emitOnce("jsss-error",respString); }
+		thisRef.emitOnce("jsss-end");
 	});	
 };
 
