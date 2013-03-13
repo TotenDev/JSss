@@ -52,7 +52,7 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
 **/
-S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp,optionalEnconding) {
+S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
@@ -88,7 +88,7 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'));
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),optionalHash);
 }
 
 /**
@@ -150,7 +150,7 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
 **/
-S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp,optionalEnconding) {
+S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
@@ -194,7 +194,7 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'));
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),optionalHash);
 }
 
 /**
@@ -360,7 +360,7 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @param buffer|string|data bodyData - Body Data - OPTIONAL
 * @param string encodingBody - request body enconding. - OPTIONAL
 **/
-S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData,encodingBody) {
+S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData,encodingBody,hashBody) {
 	//Helps
 	var connectionPath = _connectionPath;
 	var connectionMethod = _connectionMethod;
@@ -376,11 +376,17 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 	if (bodyData) { 
 		if (!Buffer.isBuffer(bodyData)) { 
 			headers['Content-Length'] = unescape(bodyData).length;
-		}else { headers['Content-Length'] = bodyData.length; }
+		}else{
+			headers['Content-Length'] = bodyData.length; 
+		}	
 	}
+	
+	//Body Hash
+	if(hashBody) headers['Content-MD5'] = hashBody
+
 	//Get signer
 	if (credentials) { 
-		var auth = new AWSSign(credentials).sign({ method: connectionMethod, bucket: bucketID, path: connectionPath, date: connectionDate }); 
+		var auth = new AWSSign(credentials).sign({ method: connectionMethod, bucket: bucketID,contentMd5:hashBody, path: connectionPath, date: connectionDate }); 
 		if (auth && auth.length > 0) { headers['Authorization'] = auth; }
 	}
 	//Set request headers

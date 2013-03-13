@@ -5,7 +5,7 @@
 // see LICENSE for details.
 //
 
-var util = require ('util'),
+var	util = require ('util'),
 	inherits = util.inherits,
 	EventEmitter = require('events').EventEmitter,
 	debug = (process.argv.indexOf('--debug') != -1 ? console.error : function () {});
@@ -91,7 +91,7 @@ JSss.prototype.getReady = function getReady() {
 * @param number chunkPosition - Chunk Position, so you can upload multiple parts at same time - REQUIRED
 * @param string fileEncoding - Which enconding to use when uploading. Default is `utf8` - OPTIONAL
 **/
-JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition,fileEncoding) {
+JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition,fileEncoding,hash) {
 	//Upload
 	var thisRef = this;
 	this.S3Api.multipartUploadChunk(this.fileName,this.uploadID,chunkPosition,chunkData,function (suc,eTag) {
@@ -99,7 +99,8 @@ JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition,fileEn
 			thisRef.uploadChunks.push({PartNumber:chunkPosition,ETag:eTag});
 			thisRef.emit("jsss-upload-notice",chunkPosition,true);
 		}else { thisRef.emit("jsss-upload-notice",chunkPosition,false); }
-	},true, (fileEncoding ? fileEncoding : 'utf8'));	
+	},
+	true,(fileEncoding ? fileEncoding : 'utf8'), hash)	
 };
 /**
 * Abort multipart upload function 
