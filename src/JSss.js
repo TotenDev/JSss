@@ -89,9 +89,10 @@ JSss.prototype.getReady = function getReady() {
 *
 * @param string|data|Buffer chunkData - Chunk to be uploaded - REQUIRED
 * @param number chunkPosition - Chunk Position, so you can upload multiple parts at same time - REQUIRED
-* @param string fileEncoding - Which enconding to use when uploading. Default is `utf8` - OPTIONAL
+* @param string optionalFileEncoding - Which enconding to use when uploading. Default is `utf8` - OPTIONAL
+* @param string optionalHash - MD5 chunkData hash. Default just don't use it - OPTIONAL
 **/
-JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition,fileEncoding,hash) {
+JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition,optionalFileEncoding,optionalHash) {
 	//Upload
 	var thisRef = this;
 	this.S3Api.multipartUploadChunk(this.fileName,this.uploadID,chunkPosition,chunkData,function (suc,eTag) {
@@ -100,7 +101,7 @@ JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition,fileEn
 			thisRef.emit("jsss-upload-notice",chunkPosition,true);
 		}else { thisRef.emit("jsss-upload-notice",chunkPosition,false); }
 	},
-	true,(fileEncoding ? fileEncoding : 'utf8'), hash)	
+	true,(optionalFileEncoding ? optionalFileEncoding : 'utf8'), optionalHash);
 };
 /**
 * Abort multipart upload function 

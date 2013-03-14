@@ -51,6 +51,7 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
+* @param string optionalHash - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
 S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
 	//Checks
@@ -149,6 +150,7 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
+* @param string optionalHash - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
 S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
 	//Checks
@@ -359,6 +361,7 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @cb-param string callback.headers - response headers - OPTIONAL
 * @param buffer|string|data bodyData - Body Data - OPTIONAL
 * @param string encodingBody - request body enconding. - OPTIONAL
+* @param string hashBody - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
 S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData,encodingBody,hashBody) {
 	//Helps
