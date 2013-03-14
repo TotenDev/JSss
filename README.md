@@ -81,10 +81,11 @@ Parameters:
 - chunkData - **Type:**string || Buffer - **Description:**Chunk to be uploaded - **REQUIRED**
 - chunkPosition - **Type:**number - **Description:**Chunk Position, so you can upload multiple parts at same time - **REQUIRED**
 - fileEncoding - **Type:**number - **Description:**Which encoding to use when uploading. Default is `utf8` - **OPTIONAL**
+- chunkDataHash - **Type:**string - **Description:** MD5 hash of chunkData which is used for data integrity in S3  - **OPTIONAL**
 
 Sample:
 
-    MultiPart.uploadChunk(chunkData,chunkPosition,'binary');
+    MultiPart.uploadChunk(chunkData,chunkPosition,'binary',chunkDataHash);
     
 ---
 #### Finish Upload
