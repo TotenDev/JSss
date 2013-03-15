@@ -33,9 +33,9 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 	//Get http
 	http = (useSSL ? require('https') : require('http'));
 	//
-	bucketID = _bucketID;
-	credentials = (_AWSAccessKeyID && _AWSSecretAccessKey ? { accessKeyId: _AWSAccessKeyID, secretAccessKey:_AWSSecretAccessKey } : null);
-	currentRequests = new Array();
+	this.bucketID = _bucketID;
+	this.signer = new AWSSign(_AWSAccessKeyID,_AWSSecretAccessKey)
+	this.currentRequests = new Array();
 }
 
 
@@ -379,7 +379,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode, connectionPath,
 
 	var host = bucketID + "." + endPoint;
 	var port = useSSL ? 443 : 80;
-	var connectionOptions={
+	var connectionOptions = {
 		method: connectionMethod,
 		path: connectionPath,
 		host: host,
@@ -387,8 +387,7 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode, connectionPath,
 		headers: headers
 	}
 
-	var signer = new AWSSign(credentials)
-	signer.sign(connectionOptions)
+	if(this.signer)this.signer.sign(connectionOptions)
 
 	var requestResponded = false;
 	//Request to endpoint
