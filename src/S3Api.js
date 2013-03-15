@@ -363,19 +363,12 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @param string encodingBody - request body enconding. - OPTIONAL
 * @param string hashBody - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
-S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData,encodingBody,hashBody) {
-	//Helps
-	var connectionPath = _connectionPath;
-	var connectionMethod = _connectionMethod;
-	var connectionDate = new Date().toUTCString();
-	var connectionHost  = bucketID + "." + endPoint;
-	//format connection options
-	var connectionOptions = { host: connectionHost, port: (useSSL ? 443 : 80), path: connectionPath, method: connectionMethod };
+S3Api.simpleRequest = function simpleRequest(_successStatusCode, connectionPath,connectionMethod,callback,bodyData,encodingBody,hashBody) {
 	
-	//Format Headers
 	var headers = {};
-	headers['Date'] = connectionDate ;
-	//BodyData ?
+	headers['Date'] = new Date().toUTCString()
+	if(hashBody) headers['Content-MD5'] = hashBody
+
 	if (bodyData) { 
 		if (!Buffer.isBuffer(bodyData)) { 
 			headers['Content-Length'] = unescape(bodyData).length;
@@ -383,17 +376,20 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 			headers['Content-Length'] = bodyData.length; 
 		}	
 	}
-	
-	//Body Hash
-	if(hashBody) headers['Content-MD5'] = hashBody
 
-	//Get signer
-	if (credentials) { 
-		var auth = new AWSSign(credentials).sign({ method: connectionMethod, bucket: bucketID,contentMd5:hashBody, path: connectionPath, date: connectionDate }); 
-		if (auth && auth.length > 0) { headers['Authorization'] = auth; }
+	var host = bucketID + "." + endPoint;
+	var port = useSSL ? 443 : 80;
+	var connectionOptions={
+		method: connectionMethod,
+		path: connectionPath,
+		host: host,
+		port: port,
+		headers: headers
 	}
-	//Set request headers
-	connectionOptions["headers"] = headers;
+
+	var signer = new AWSSign(credentials)
+	signer.sign(connectionOptions)
+
 	var requestResponded = false;
 	//Request to endpoint
 	debug("*S3Api* Starting S3 request:",connectionPath);
