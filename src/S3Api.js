@@ -28,8 +28,8 @@ module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,options){ 
 
 function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 	if (options){
-		if (options["endPoint"])endPoint = options["endPoint"];
-		if (!options["useSSL"])useSSL = options["useSSL"];
+		if (options["endPoint"]){ endPoint = options["endPoint"]; }
+		if (!options["useSSL"]){ useSSL = options["useSSL"]; }
 	}
 
 	http = (useSSL ? require('https') : require('http'));
@@ -68,11 +68,10 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
-	
-	//Helps
+
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName );
 	var connectionMethod = 'PUT';
-	
 	//Make request
 	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp,headers) {
@@ -114,7 +113,8 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
-	//Helps
+
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?uploads' );
 	var connectionMethod = 'POST';
 	//Make request
@@ -175,11 +175,10 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
-	
-	//Helps
+
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?partNumber=' + partNumber + '&uploadId=' + uploadID );
 	var connectionMethod = 'PUT';
-	
 	//Make request
 	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp,headers) {
@@ -225,8 +224,8 @@ S3Api.prototype.multipartListPartsUpload = function multipartListPartsUpload(obj
 		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
-	
-	//Helps
+
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'GET';
 	//Make request
@@ -267,7 +266,7 @@ S3Api.prototype.multipartAbortUpload = function multipartAbortUpload(objectName,
 		return; 
 	}
 	
-	//Helps
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'DELETE';
 	//cancel all requests and remove from `currentRequests`
@@ -316,7 +315,7 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 		return; 
 	}
 	
-	//Helps
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'POST';
 	//Format Body
@@ -367,8 +366,9 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @param string encodingBody - request body enconding. - OPTIONAL
 * @param string hashBody - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
-S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, connectionPath,connectionMethod,callback,bodyData,encodingBody,hashBody) {
-	
+S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _connectionPath, _connectionMethod, callback, bodyData, encodingBody, hashBody) {
+    
+    //Format header	
 	var headers = {};
 	headers['date'] = new Date().toUTCString();
 	if (hashBody) headers['content-md5'] = hashBody
@@ -379,22 +379,21 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, conne
 			headers['content-length'] = bodyData.length; 
 		}	
 	}
-
-	var host = this.bucketID + "." + endPoint;
-
+    //Format connection options
 	var connectionOptions = {
-		method: connectionMethod,
-		path: connectionPath,
-		host: host,
+		method: _connectionMethod,
+		path: _connectionPath,
+		host: (this.bucketID + "." + endPoint),
 		headers: headers
 	}
-
-	if(this.signer)this.signer.sign(connectionOptions)
+    
+    //
+	if(this.signer) this.signer.sign(connectionOptions)
 
 	var requestResponded = false;
 	var thisRef=this;
 	//Request to endpoint
-	debug("*S3Api* Starting S3 request:",connectionPath);
+	debug("*S3Api* Starting S3 request:",_connectionPath);
 	var req = http.request(connectionOptions,function (res) {
 		res.setEncoding('utf8');
 		//Response chunks

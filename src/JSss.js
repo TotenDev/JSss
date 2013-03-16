@@ -23,44 +23,50 @@ var	util = require ('util'),
 **/
 module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName,options) { return new JSss(bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName,options); }
 function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName,options) {
-	//Checks
-	if (!_bucketID) {
-		var errMsg = "*JSss* _bucketID *REQUIRED* parameter is missing;";
-		debug(errMsg);
-		this.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
-		this.emit("jsss-end");
-		return;
-	}else if (!_AWSAccessKeyID) {
-		var errMsg = "*JSss* _AWSAccessKeyID *REQUIRED* parameter is missing;";
-		debug(errMsg);
-		this.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
-		this.emit("jsss-end");
-		return;
-	}else if (!_AWSSecretAccessKey) {
-		var errMsg = "*JSss* _AWSSecretAccessKey *REQUIRED* parameter is missing;";
-		debug(errMsg);
-		this.emit("error",errMsg);/*stills emitting error, so an exception will be raise*/
-		this.emit("jsss-end");
-		return;
-	}else if (!fileName) {
-		var errMsg = "*JSss* fileName *REQUIRED* parameter is missing;";
-		debug(errMsg);
-		this.emit("error",errMsg); /*stills emitting error, so an exception will be raise*/
-		this.emit("jsss-end");
-		return;
-	}
-	
-	//Get API
-	this.fileName = fileName;
-	this.uploadChunks = [];
-	this.S3Api = require("./S3Api.js")(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options);
-	//AddListener newListener 
-	this.addListener("newListener",function (event,listFunction) {
-		switch (event) {
-			case "jsss-ready":{ this.getReady(); } break;
-			default: {} break;
-		}
-	});
+    var thisRef = this;
+    function raiseError(obj,errMsg) {
+        debug(errMsg);
+        obj.emit("jsss-error",errMsg);/*stills emitting error, so an exception will be raise*/
+        obj.emit("jsss-end");
+    }
+    //Run initiliazition on nextTick so user will be already registered to error events
+    process.nextTick(function () {
+        //Checks
+        if (!_bucketID) {
+          var errMsg = "*JSss* _bucketID *REQUIRED* parameter is missing;";
+          raiseError(thisRef,errMsg);
+          return;
+        }else if (!_AWSAccessKeyID) {
+          var errMsg = "*JSss* _AWSAccessKeyID *REQUIRED* parameter is missing;";
+          raiseError(thisRef,errMsg);
+          return;
+        }else if (!_AWSSecretAccessKey) {
+          var errMsg = "*JSss* _AWSSecretAccessKey *REQUIRED* parameter is missing;";
+          raiseError(thisRef,errMsg);
+          return;
+        }else if (!fileName) {
+          var errMsg = "*JSss* fileName *REQUIRED* parameter is missing;";
+          raiseError(thisRef,errMsg);
+          return;
+        }
+
+        //Get API
+        thisRef.fileName = fileName;
+        thisRef.uploadChunks = [];
+        thisRef.S3Api = require("./S3Api.js")(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options);
+        
+        //Initialize once
+        if (thisRef.listeners('jsss-ready').length > 0) {
+          thisRef.getReady();
+        }else { /*Listen for new listeners to check when user add jsss-ready event*/
+         thisRef.addListener("newListener",function (event,listFunction) {
+          switch (event) {
+            case "jsss-ready":{ thisRef.getReady(); } break;
+            default: {} break;
+          }
+         }); 
+        }
+    });
 };
 //inherits to EventEmitter
 inherits(JSss, EventEmitter);
