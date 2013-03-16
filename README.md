@@ -65,8 +65,9 @@ Parameters:
 * AWSSecretAccessKey - **Type:**string - **Description:**AWS SecretAccessKey - **REQUIRED**
 * fileName - **Type:**string - **Description:**fileName to be on S3 - **REQUIRED**
 * options - **Type:**OptionObject - **Description:**Options Object - **OPTIONAL**
-* options.endPoint - **Type:**string - **Description:**End point to be used, default `s3.amazonaws.com` - **OPTIONAL**
-* options.useSSL - **Type:**boolean - **Description:**Use SSL or not, default is true - **OPTIONAL**
+* options.endPoint - **Type:**string - **Description:**End point to be used - **Default** is `s3.amazonaws.com` - **OPTIONAL**
+* options.useSSL - **Type:**boolean - **Description:**Use SSL or not - **Default** is true - **OPTIONAL**
+* options.dataIntegrity - **Type:**boolean - **Description:**Generates MD5 hash of uploading data for S3 integrity check - **Default** is true - **OPTIONAL**
 
 Sample:
 

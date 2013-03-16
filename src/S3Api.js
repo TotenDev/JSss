@@ -12,6 +12,7 @@ var endPoint = "s3.amazonaws.com";
 var AWSSign = require('aws-sign'),
 	util = require ('util'),
 	xml2json = require("node-xml2json"),
+    cyrpto = require('crypto'),
 	debug = (process.argv.indexOf('--debug') != -1 ? console.error : function () {});
 
 /**
@@ -21,18 +22,21 @@ var AWSSign = require('aws-sign'),
 * @param string AWSAccessKeyID - AWS AccessKeyID         - REQUIRED
 * @param string AWSSecretAccessKey - AWS SecretAccessKey - REQUIRED
 * @param Object options - options object - OPTIONAL
-* @param string options.endPoint - End point to be used, default `s3.amazonaws.com` - OPTIONAL
-* @param bool options.useSSL - Use SSL or not, default is true - OPTIONAL
+* @param string options.endPoint - End point to be used - Default is `s3.amazonaws.com` - OPTIONAL
+* @param bool options.useSSL - Use SSL or not - Default is true - OPTIONAL
+* @param bool options.dataIntegrity - Generates MD5 hash of uploading data for S3 integrity check - Default is true - OPTIONAL
 **/
 module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,options){ return new S3Api(bucketID,AWSAccessKeyID,AWSSecretAccessKey,options); }
 
 function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
-	if (options){
-		if (options["endPoint"]){ endPoint = options["endPoint"]; }
-		if (!options["useSSL"]){ useSSL = options["useSSL"]; }
-	}
+    if (options && options["endPoint"]){ this.endPoint = options["endPoint"]; }
+    else { this.endPoint = endPoint; }
+    if (options && !options["useSSL"]){ this.useSSL = options["useSSL"]; }
+    else { this.useSSL = true; }
+    if (options && !options["dataIntegrity"]){ this.dataIntegrity = options["dataIntegrity"]; }
+    else { this.dataIntegrity = true; }
 
-	http = (useSSL ? require('https') : require('http'));
+	http = (this.useSSL ? require('https') : require('http'));
 
 	this.bucketID = _bucketID;
 	this.signer = new AWSSign({
@@ -55,7 +59,6 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
-* @param string optionalHash - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
 S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
 	//Checks
@@ -72,6 +75,10 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName );
 	var connectionMethod = 'PUT';
+    //Generate Data hash
+    var dataHash = null;
+    if (this.dataIntegrity) { dataHash = crypto.createHash('md5').update(upBuf).digest('base64'); }
+    
 	//Make request
 	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp,headers) {
@@ -92,7 +99,7 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),optionalHash);
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),dataHash);
 }
 
 /**
@@ -154,9 +161,8 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
-* @param string optionalHash - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
-S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
+S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp,optionalEnconding) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
@@ -179,6 +185,9 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?partNumber=' + partNumber + '&uploadId=' + uploadID );
 	var connectionMethod = 'PUT';
+    var dataHash = null;
+    if (this.dataIntegrity) { dataHash = crypto.createHash('md5').update(upBuf).digest('base64'); }
+    
 	//Make request
 	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp,headers) {
@@ -199,7 +208,7 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),optionalHash);
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),dataHash);
 }
 
 /**
@@ -383,10 +392,9 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _conn
 	var connectionOptions = {
 		method: _connectionMethod,
 		path: _connectionPath,
-		host: (this.bucketID + "." + endPoint),
+		host: (this.bucketID + "." + this.endPoint),
 		headers: headers
 	}
-    
     //
 	if(this.signer) this.signer.sign(connectionOptions)
 
@@ -440,8 +448,8 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _conn
 		if (!requestResponded){ requestResponded = true; }
 		else { return ; }
 		//Remove connection from stack
-		var idx = this.currentRequests.indexOf(req);
-		if (idx != -1) { this.currentRequests.splice(idx,1); }
+		var idx = thisRef.currentRequests.indexOf(req);
+		if (idx != -1) { thisRef.currentRequests.splice(idx,1); }
 		//Error
 		var errMsg = "Request errored: " + err;
 		if (callback) { callback(false,errMsg,null); }else { debug("*S3Api*",errMsg); }
