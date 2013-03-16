@@ -60,7 +60,7 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
 **/
-S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
+S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp,optionalEnconding) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
