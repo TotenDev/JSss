@@ -24,17 +24,17 @@ var AWSSign = require('aws-sign'),
 * @param Object options - options object - OPTIONAL
 * @param string options.endPoint - End point to be used - Default is `s3.amazonaws.com` - OPTIONAL
 * @param bool options.useSSL - Use SSL or not - Default is true - OPTIONAL
-* @param bool options.dataIntegrity - Generates MD5 hash of uploading data for S3 integrity check - Default is true - OPTIONAL
+* @param bool options.dataIntegrityEnabled - Generates MD5 hash of uploading data for S3 integrity check - Default is true - OPTIONAL
+* @param bool options.rrsEnabled - Reduced redundancy storage enables customers to reduce their costs by storing non-critical, reproducible data at lower levels of redundancy than Amazon S3's standard storage. - Default is false (Higher level of redundancy) - OPTIONAL
 **/
 module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,options){ return new S3Api(bucketID,AWSAccessKeyID,AWSSecretAccessKey,options); }
 
 function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
     if (options && options["endPoint"]){ this.endPoint = options["endPoint"]; }
     else { this.endPoint = endPoint; }
-    if (options && !options["useSSL"]){ this.useSSL = options["useSSL"]; }
-    else { this.useSSL = true; }
-    if (options && !options["dataIntegrity"]){ this.dataIntegrity = options["dataIntegrity"]; }
-    else { this.dataIntegrity = true; }
+    this.useSSL = !(options && !options["useSSL"]);
+    this.dataIntegrity = !(options && !options["dataIntegrityEnabled"]);
+    this.reducedRedundancyStorage = (options && options["rrsEnabled"]);
 
 	http = (this.useSSL ? require('https') : require('http'));
 
@@ -380,7 +380,11 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _conn
     //Format header	
 	var headers = {};
 	headers['date'] = new Date().toUTCString();
-	if (hashBody) headers['content-md5'] = hashBody
+    //Integrity check
+	if (hashBody) { headers['content-md5'] = hashBody }
+    //RRS - http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectPUT.html
+    if (this.reducedRedundancyStorage) { headers['x-amz-storage-class'] = "REDUCED_REDUNDANCY"; }
+    else { headers['x-amz-storage-class'] = "STANDARD"; }
 	if (bodyData) { 
 		if (!Buffer.isBuffer(bodyData)) { 
 			headers['content-length'] = unescape(bodyData).length;
@@ -388,6 +392,7 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _conn
 			headers['content-length'] = bodyData.length; 
 		}	
 	}
+
     //Format connection options
 	var connectionOptions = {
 		method: _connectionMethod,

@@ -1,4 +1,4 @@
-var MultiPart = require("./../src/JSss.js")("ohByBucket","MyAccessKey","mySecret","folde/theFileName.zip",{ endPoint:"secondary.s3.com",useSSL:false,dataIntegrity:false });
+var MultiPart = require("./../src/JSss.js")("ohByBucket","MyAccessKey","mySecret","folde/theFileName.zip",{ endPoint:"secondary.s3.com",useSSL:false,dataIntegrityEnabled:false,rrsEnabled:false });
 MultiPart.on("jsss-end",function () {
 	console.log("end");	
 });

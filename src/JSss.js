@@ -20,7 +20,8 @@ var	util = require ('util'),
 * @param Object options - options object 		         - OPTIONAL
 * @param string options.endPoint - End point to be used - Default is `s3.amazonaws.com` - OPTIONAL
 * @param bool options.useSSL - Use SSL or not - Default is true - OPTIONAL
-* @param bool options.dataIntegrity - Generates MD5 hash of uploading data for S3 integrity check - Default is true - OPTIONAL
+* @param bool options.dataIntegrityEnabled - Generates MD5 hash of uploading data for S3 integrity check - Default is true - OPTIONAL
+* @param bool options.rrsEnabled - Reduced redundancy storage enables customers to reduce their costs by storing non-critical, reproducible data at lower levels of redundancy than Amazon S3's standard storage. - Default is false (Higher level of redundancy) - OPTIONAL
 **/
 module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName,options) { return new JSss(bucketID,AWSAccessKeyID,AWSSecretAccessKey,fileName,options); }
 function JSss(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,fileName,options) {
