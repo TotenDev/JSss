@@ -12,6 +12,7 @@ var endPoint = "s3.amazonaws.com";
 var AWSSign = require('aws-sign'),
 	util = require ('util'),
 	xml2json = require("node-xml2json"),
+    cyrpto = require('crypto'),
 	debug = (process.argv.indexOf('--debug') != -1 ? console.error : function () {});
 
 /**
@@ -21,18 +22,21 @@ var AWSSign = require('aws-sign'),
 * @param string AWSAccessKeyID - AWS AccessKeyID         - REQUIRED
 * @param string AWSSecretAccessKey - AWS SecretAccessKey - REQUIRED
 * @param Object options - options object - OPTIONAL
-* @param string options.endPoint - End point to be used, default `s3.amazonaws.com` - OPTIONAL
-* @param bool options.useSSL - Use SSL or not, default is true - OPTIONAL
+* @param string options.endPoint - End point to be used - Default is `s3.amazonaws.com` - OPTIONAL
+* @param bool options.useSSL - Use SSL or not - Default is true - OPTIONAL
+* @param bool options.dataIntegrityEnabled - Generates MD5 hash of uploading data for S3 integrity check - Default is true - OPTIONAL
+* @param bool options.rrsEnabled - Reduced redundancy storage enables customers to reduce their costs by storing non-critical, reproducible data at lower levels of redundancy than Amazon S3's standard storage. - Default is false (Higher level of redundancy) - OPTIONAL
 **/
 module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,options){ return new S3Api(bucketID,AWSAccessKeyID,AWSSecretAccessKey,options); }
 
 function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
-	if (options){
-		if (options["endPoint"])endPoint = options["endPoint"];
-		if (!options["useSSL"])useSSL = options["useSSL"];
-	}
+    if (options && options["endPoint"]){ this.endPoint = options["endPoint"]; }
+    else { this.endPoint = endPoint; }
+    this.useSSL = !(options && !options["useSSL"]);
+    this.dataIntegrity = !(options && !options["dataIntegrityEnabled"]);
+    this.reducedRedundancyStorage = (options && options["rrsEnabled"]);
 
-	http = (useSSL ? require('https') : require('http'));
+	http = (this.useSSL ? require('https') : require('http'));
 
 	this.bucketID = _bucketID;
 	this.signer = new AWSSign({
@@ -55,7 +59,6 @@ function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
-* @param string optionalHash - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
 S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
 	//Checks
@@ -68,11 +71,14 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
-	
-	//Helps
+
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName );
 	var connectionMethod = 'PUT';
-	
+    //Generate Data hash
+    var dataHash = null;
+    if (this.dataIntegrity) { dataHash = crypto.createHash('md5').update(upBuf).digest('base64'); }
+    
 	//Make request
 	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp,headers) {
@@ -93,7 +99,7 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),optionalHash);
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),dataHash);
 }
 
 /**
@@ -114,7 +120,8 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
-	//Helps
+
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?uploads' );
 	var connectionMethod = 'POST';
 	//Make request
@@ -154,9 +161,8 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 * @param string callback.resp - response - OPTIONAL
 * @param boolean dryResp - indicates a full response headers or a dry with the Upload ETag only in callback.resp. Defaults is false. - OPTIONAL
 * @param string optionalEnconding - request body enconding. Defaults is utf8. - OPTIONAL
-* @param string optionalHash - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
-S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp,optionalEnconding,optionalHash) {
+S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,uploadID,partNumber,upBuf,callback,dryResp,optionalEnconding) {
 	//Checks
 	if (!objectName) { 
 		var errorStr="objectName *REQUIRED* parameter is missing;"; 
@@ -175,11 +181,13 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
-	
-	//Helps
+
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?partNumber=' + partNumber + '&uploadId=' + uploadID );
 	var connectionMethod = 'PUT';
-	
+    var dataHash = null;
+    if (this.dataIntegrity) { dataHash = crypto.createHash('md5').update(upBuf).digest('base64'); }
+    
 	//Make request
 	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp,headers) {
@@ -200,7 +208,7 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),optionalHash);
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),dataHash);
 }
 
 /**
@@ -225,8 +233,8 @@ S3Api.prototype.multipartListPartsUpload = function multipartListPartsUpload(obj
 		if (callback) { callback(false,errorStr); }else{ debug("*S3Api*",errorStr); } 
 		return; 
 	}
-	
-	//Helps
+
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'GET';
 	//Make request
@@ -267,7 +275,7 @@ S3Api.prototype.multipartAbortUpload = function multipartAbortUpload(objectName,
 		return; 
 	}
 	
-	//Helps
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'DELETE';
 	//cancel all requests and remove from `currentRequests`
@@ -316,7 +324,7 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 		return; 
 	}
 	
-	//Helps
+	//Connection ivars
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'POST';
 	//Format Body
@@ -367,11 +375,16 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @param string encodingBody - request body enconding. - OPTIONAL
 * @param string hashBody - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
-S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, connectionPath,connectionMethod,callback,bodyData,encodingBody,hashBody) {
-	
+S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _connectionPath, _connectionMethod, callback, bodyData, encodingBody, hashBody) {
+    
+    //Format header	
 	var headers = {};
 	headers['date'] = new Date().toUTCString();
-	if (hashBody) headers['content-md5'] = hashBody
+    //Integrity check
+	if (hashBody) { headers['content-md5'] = hashBody }
+    //RRS - http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectPUT.html
+    if (this.reducedRedundancyStorage) { headers['x-amz-storage-class'] = "REDUCED_REDUNDANCY"; }
+    else { headers['x-amz-storage-class'] = "STANDARD"; }
 	if (bodyData) { 
 		if (!Buffer.isBuffer(bodyData)) { 
 			headers['content-length'] = unescape(bodyData).length;
@@ -380,21 +393,20 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, conne
 		}	
 	}
 
-	var host = this.bucketID + "." + endPoint;
-
+    //Format connection options
 	var connectionOptions = {
-		method: connectionMethod,
-		path: connectionPath,
-		host: host,
+		method: _connectionMethod,
+		path: _connectionPath,
+		host: (this.bucketID + "." + this.endPoint),
 		headers: headers
 	}
-
-	if(this.signer)this.signer.sign(connectionOptions)
+    //
+	if(this.signer) this.signer.sign(connectionOptions)
 
 	var requestResponded = false;
 	var thisRef=this;
 	//Request to endpoint
-	debug("*S3Api* Starting S3 request:",connectionPath);
+	debug("*S3Api* Starting S3 request:",_connectionPath);
 	var req = http.request(connectionOptions,function (res) {
 		res.setEncoding('utf8');
 		//Response chunks
@@ -441,8 +453,8 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, conne
 		if (!requestResponded){ requestResponded = true; }
 		else { return ; }
 		//Remove connection from stack
-		var idx = this.currentRequests.indexOf(req);
-		if (idx != -1) { this.currentRequests.splice(idx,1); }
+		var idx = thisRef.currentRequests.indexOf(req);
+		if (idx != -1) { thisRef.currentRequests.splice(idx,1); }
 		//Error
 		var errMsg = "Request errored: " + err;
 		if (callback) { callback(false,errMsg,null); }else { debug("*S3Api*",errMsg); }
