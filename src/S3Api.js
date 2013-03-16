@@ -24,18 +24,22 @@ var AWSSign = require('aws-sign'),
 * @param string options.endPoint - End point to be used, default `s3.amazonaws.com` - OPTIONAL
 * @param bool options.useSSL - Use SSL or not, default is true - OPTIONAL
 **/
-module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,options) { return new S3Api(bucketID,AWSAccessKeyID,AWSSecretAccessKey,options); }
+module.exports = function (bucketID,AWSAccessKeyID,AWSSecretAccessKey,options){ return new S3Api(bucketID,AWSAccessKeyID,AWSSecretAccessKey,options); }
+
 function S3Api(_bucketID,_AWSAccessKeyID,_AWSSecretAccessKey,options) {
-	//Check for endpoint
-	if (options && options["endPoint"]) { endPoint = options["endPoint"]; }
-	//Check for SSL use
-	if (options && options["useSSL"] == false) { useSSL = options["useSSL"]; }
-	//Get http
+	if (options){
+		if (options["endPoint"])endPoint = options["endPoint"];
+		if (!options["useSSL"])useSSL = options["useSSL"];
+	}
+
 	http = (useSSL ? require('https') : require('http'));
-	//
-	bucketID = _bucketID;
-	credentials = (_AWSAccessKeyID && _AWSSecretAccessKey ? { accessKeyId: _AWSAccessKeyID, secretAccessKey:_AWSSecretAccessKey } : null);
-	currentRequests = new Array();
+
+	this.bucketID = _bucketID;
+	this.signer = new AWSSign({
+		accessKeyId:_AWSAccessKeyID,
+		secretAccessKey:_AWSSecretAccessKey,
+	});
+	this.currentRequests = new Array();
 }
 
 
@@ -70,7 +74,7 @@ S3Api.prototype.singleUpload = function singleUpload(objectName,upBuf,callback,d
 	var connectionMethod = 'PUT';
 	
 	//Make request
-	S3Api.simpleRequest(200,connectionPath,connectionMethod,
+	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp,headers) {
 			//Successed
 			if (suc) {
@@ -114,7 +118,7 @@ S3Api.prototype.multipartInitiateUpload = function multipartInitiateUpload(objec
 	var connectionPath = encodeURI( '/' + objectName + '?uploads' );
 	var connectionMethod = 'POST';
 	//Make request
-	S3Api.simpleRequest(200,connectionPath,connectionMethod,
+	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp) {
 			//Successed
 			if (suc) {
@@ -177,7 +181,7 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 	var connectionMethod = 'PUT';
 	
 	//Make request
-	S3Api.simpleRequest(200,connectionPath,connectionMethod,
+	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp,headers) {
 			//Successed
 			if (suc) {
@@ -226,7 +230,7 @@ S3Api.prototype.multipartListPartsUpload = function multipartListPartsUpload(obj
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'GET';
 	//Make request
-	S3Api.simpleRequest(200,connectionPath,connectionMethod,
+	this.simpleRequest(200,connectionPath,connectionMethod,
 		function (suc,resp) {
 			//Successed
 			if (suc) {
@@ -267,10 +271,10 @@ S3Api.prototype.multipartAbortUpload = function multipartAbortUpload(objectName,
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'DELETE';
 	//cancel all requests and remove from `currentRequests`
-	for (var idx in currentRequests) { currentRequests[idx].abort(); }
-	currentRequests.splice(0,currentRequests.length);
+	for (var idx in this.currentRequests) { this.currentRequests[idx].abort(); }
+	this.currentRequests.splice(0,this.currentRequests.length);
 	//Make request
-	S3Api.simpleRequest(204,connectionPath,connectionMethod,
+	this.simpleRequest(204,connectionPath,connectionMethod,
 		function (suc,resp) {
 			//Successed
 			if (suc) {
@@ -316,10 +320,10 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'POST';
 	//Format Body
-	var bodyData = S3Api.formatCompleteBodyXML(partsRef);
+	var bodyData = this.formatCompleteBodyXML(partsRef);
 	if (bodyData) {
 		//Make request
-		S3Api.simpleRequest(200,connectionPath,connectionMethod,
+		this.simpleRequest(200,connectionPath,connectionMethod,
 			function (suc,resp) {
 				//Successed
 				if (suc) {
@@ -363,38 +367,32 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @param string encodingBody - request body enconding. - OPTIONAL
 * @param string hashBody - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
 **/
-S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,_connectionMethod,callback,bodyData,encodingBody,hashBody) {
-	//Helps
-	var connectionPath = _connectionPath;
-	var connectionMethod = _connectionMethod;
-	var connectionDate = new Date().toUTCString();
-	var connectionHost  = bucketID + "." + endPoint;
-	//format connection options
-	var connectionOptions = { host: connectionHost, port: (useSSL ? 443 : 80), path: connectionPath, method: connectionMethod };
+S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, connectionPath,connectionMethod,callback,bodyData,encodingBody,hashBody) {
 	
-	//Format Headers
 	var headers = {};
-	headers['Date'] = connectionDate ;
-	//BodyData ?
+	headers['date'] = new Date().toUTCString();
+	if (hashBody) headers['content-md5'] = hashBody
 	if (bodyData) { 
 		if (!Buffer.isBuffer(bodyData)) { 
-			headers['Content-Length'] = unescape(bodyData).length;
+			headers['content-length'] = unescape(bodyData).length;
 		}else{
-			headers['Content-Length'] = bodyData.length; 
+			headers['content-length'] = bodyData.length; 
 		}	
 	}
-	
-	//Body Hash
-	if(hashBody) headers['Content-MD5'] = hashBody
 
-	//Get signer
-	if (credentials) { 
-		var auth = new AWSSign(credentials).sign({ method: connectionMethod, bucket: bucketID,contentMd5:hashBody, path: connectionPath, date: connectionDate }); 
-		if (auth && auth.length > 0) { headers['Authorization'] = auth; }
+	var host = this.bucketID + "." + endPoint;
+
+	var connectionOptions = {
+		method: connectionMethod,
+		path: connectionPath,
+		host: host,
+		headers: headers
 	}
-	//Set request headers
-	connectionOptions["headers"] = headers;
+
+	if(this.signer)this.signer.sign(connectionOptions)
+
 	var requestResponded = false;
+	var thisRef=this;
 	//Request to endpoint
 	debug("*S3Api* Starting S3 request:",connectionPath);
 	var req = http.request(connectionOptions,function (res) {
@@ -408,8 +406,8 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 			if (!requestResponded) { requestResponded = true; }
 			else { return ; }
 			//Remove connection from stack
-			var idx = currentRequests.indexOf(req);
-			if (idx != -1) { currentRequests.splice(idx,1); }
+			var idx = thisRef.currentRequests.indexOf(req);
+			if (idx != -1) { thisRef.currentRequests.splice(idx,1); }
 			//Try to get Json value
 			var JSONValue = '';
 			try { JSONValue = xml2json.parser(mutableData);
@@ -435,16 +433,16 @@ S3Api.simpleRequest = function simpleRequest(_successStatusCode,_connectionPath,
 		});
 	});
 	//Add in connection stack
-	currentRequests.push(req);
+	this.currentRequests.push(req);
 	//Response error
 	req.on("error",function (err) {
 		debug("*S3Api* err",err);
 		//Check if already responded
-		if (!requestResponded) { requestResponded = true; }
+		if (!requestResponded){ requestResponded = true; }
 		else { return ; }
 		//Remove connection from stack
-		var idx = currentRequests.indexOf(req);
-		if (idx != -1) { currentRequests.splice(idx,1); }
+		var idx = this.currentRequests.indexOf(req);
+		if (idx != -1) { this.currentRequests.splice(idx,1); }
 		//Error
 		var errMsg = "Request errored: " + err;
 		if (callback) { callback(false,errMsg,null); }else { debug("*S3Api*",errMsg); }
