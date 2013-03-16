@@ -65,12 +65,14 @@ Parameters:
 * AWSSecretAccessKey - **Type:**string - **Description:**AWS SecretAccessKey - **REQUIRED**
 * fileName - **Type:**string - **Description:**fileName to be on S3 - **REQUIRED**
 * options - **Type:**OptionObject - **Description:**Options Object - **OPTIONAL**
-* options.endPoint - **Type:**string - **Description:**End point to be used, default `s3.amazonaws.com` - **OPTIONAL**
-* options.useSSL - **Type:**boolean - **Description:**Use SSL or not, default is true - **OPTIONAL**
+* options.endPoint - **Type:**string - **Description:**End point to be used - **Default** is `s3.amazonaws.com` - **OPTIONAL**
+* options.useSSL - **Type:**boolean - **Description:**Use SSL or not - **Default** is true - **OPTIONAL**
+* options.dataIntegrityEnabled - **Type:**boolean - **Description:**Generates MD5 hash of uploading data for S3 integrity check - **Default** is true - **OPTIONAL**
+* options.rrsEnabled - **Type:**boolean - **Description:**Reduced redundancy storage enables customers to reduce their costs by storing non-critical, reproducible data at lower levels of redundancy than Amazon S3's standard storage. - **Default** is false (Higher level of redundancy) - **OPTIONAL**
 
 Sample:
 
-    var MultiPart = require("./src/JSss.js")("myBucket","AWSAccessKey","AWSSecretAccessKey","fileNameToBeUp",{ endPoint:"secondary.s3.com",useSSL:false });
+    var MultiPart = require("./src/JSss.js")("myBucket","AWSAccessKey","AWSSecretAccessKey","fileNameToBeUp",{ endPoint:"secondary.s3.com",useSSL:false,dataIntegrityEnabled:false });
     
 ---
 #### Upload Chunk
