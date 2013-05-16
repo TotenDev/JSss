@@ -328,7 +328,7 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 	var connectionPath = encodeURI( '/' + objectName + '?uploadId=' + uploadID );
 	var connectionMethod = 'POST';
 	//Format Body
-	var bodyData = this.formatCompleteBodyXML(partsRef);
+	var bodyData =   S3Api.formatCompleteBodyXML(partsRef);
 	if (bodyData) {
 		//Make request
 		this.simpleRequest(200,connectionPath,connectionMethod,
