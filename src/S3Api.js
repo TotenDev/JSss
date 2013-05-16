@@ -12,7 +12,7 @@ var endPoint = "s3.amazonaws.com";
 var AWSSign = require('aws-sign'),
 	util = require ('util'),
 	xml2json = require("node-xml2json"),
-    cyrpto = require('crypto'),
+    crypto = require('crypto'),
 	debug = (process.argv.indexOf('--debug') != -1 ? console.error : function () {});
 
 /**
