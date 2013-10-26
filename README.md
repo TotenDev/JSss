@@ -4,7 +4,6 @@ Nodejs Amazon S3 Multipart upload module
 
 [![Build Status](https://secure.travis-ci.org/TotenDev/JSss.png?branch=master)](http://travis-ci.org/TotenDev/JSss)
 [![Dependency Status](https://gemnasium.com/TotenDev/JSss.png)](https://gemnasium.com/TotenDev/JSss)
-[![Code Climate](https://codeclimate.com/github/TotenDev/JSss.png)](https://codeclimate.com/github/TotenDev/JSss)
 
 ## Requirements
 
