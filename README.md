@@ -29,8 +29,8 @@ Download and install dependencies
 	MultiPart.on("jsss-error",function (err) {
 		console.log(err);
 	});
-	//Upload successeded or finished
-	MultiPart.on("jsss-upload-notice",function (partNumber,status) {
+	//Upload finished
+	MultiPart.on("jsss-upload-notice",function (partNumber,status,err) {
 		if (status) {
 			partFinished++;
 			if (partFinished == partCount) {
@@ -38,7 +38,8 @@ Download and install dependencies
 			}
 		}
 		else {
-			//try again ??
+			console.log("Upload finished with error:" + err);
+			MultiPart.abortUpload();
 		}
 	});
 	//Must be registered to MultiPart API start
@@ -98,7 +99,7 @@ Sample:
 
 ---
 #### Finish Upload
-This method will cancel upload, and delete all uploaded chunks.
+This method will cancel upload and delete all uploaded chunks.
 
 Sample:
 
@@ -126,11 +127,11 @@ Event-String: `jsss-upload-notice`
 
 Sample:
 
-    MultiPart.on("jsss-upload-notice",function (partNumber,status) {
+    MultiPart.on("jsss-upload-notice",function (partNumber,status,err) {
 	    if (status) {
-	       console.log("success :) on part:" + partNumber);
+	       console.log("success :) on part:" + partNumber + " with etag:" + err);
 	    }else {
-		   console.log("error on part:" + partNumber + "let's try again?");
+		   console.log("error:" + err + " on part:" + partNumber + "let's try again?");
 	    }
 	});
 ---

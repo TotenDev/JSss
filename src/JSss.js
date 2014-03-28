@@ -105,8 +105,8 @@ JSss.prototype.uploadChunk = function uploadChunk(chunkData,chunkPosition,option
 	this.S3Api.multipartUploadChunk(this.fileName,this.uploadID,chunkPosition,chunkData,function (suc,eTag) {
 		if (suc) {
 			thisRef.uploadChunks.push({PartNumber:chunkPosition,ETag:eTag});
-			thisRef.emit("jsss-upload-notice",chunkPosition,true);
-		}else { thisRef.emit("jsss-upload-notice",chunkPosition,false); }
+			thisRef.emit("jsss-upload-notice",chunkPosition,true,eTag/*etag*/);
+		}else { thisRef.emit("jsss-upload-notice",chunkPosition,false,eTag/*error*/); }
 	},
 	true,(optionalFileEncoding ? optionalFileEncoding : 'utf8'));
 };

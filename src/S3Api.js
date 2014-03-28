@@ -208,7 +208,7 @@ S3Api.prototype.multipartUploadChunk = function multipartUploadChunk(objectName,
 			else if (callback) { callback(false,resp); }
 			//errored without callback
 			else { debug("*S3Api*",resp); } 
-	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),dataHash);
+	},upBuf,(optionalEnconding ? optionalEnconding : 'utf8'),dataHash,true);
 }
 
 /**
@@ -374,8 +374,9 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @param buffer|string|data bodyData - Body Data - OPTIONAL
 * @param string encodingBody - request body enconding. - OPTIONAL
 * @param string hashBody - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
+* @param boolean isMultipartUpload - Flag for multipart upload request only. - OPTIONAL
 **/
-S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _connectionPath, _connectionMethod, callback, bodyData, encodingBody, hashBody) {
+S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _connectionPath, _connectionMethod, callback, bodyData, encodingBody, hashBody, isMultipartUpload) {
     
     //Format header	
 	var headers = {};
@@ -383,8 +384,10 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _conn
     //Integrity check
 	if (hashBody) { headers['content-md5'] = hashBody }
     //RRS - http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectPUT.html
-    if (this.reducedRedundancyStorage) { headers['x-amz-storage-class'] = "REDUCED_REDUNDANCY"; }
-    else { headers['x-amz-storage-class'] = "STANDARD"; }
+    if (!isMultipartUpload) {
+      if (this.reducedRedundancyStorage) { headers['x-amz-storage-class'] = "REDUCED_REDUNDANCY"; }
+      else { headers['x-amz-storage-class'] = "STANDARD"; } 
+    }
 	if (bodyData) { 
 		if (!Buffer.isBuffer(bodyData)) { 
 			headers['content-length'] = unescape(bodyData).length;
