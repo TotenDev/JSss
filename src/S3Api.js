@@ -342,7 +342,7 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 				else if (callback) { callback(false,resp); }
 				//errored without callback
 				else { debug("*S3Api*",resp); } 
-		},bodyData);	
+		},bodyData,null,null,true);	
 	}
 	else {
 		//errored, but with callback
@@ -374,9 +374,9 @@ S3Api.prototype.multipartCompleteUpload = function multipartCompleteUpload(objec
 * @param buffer|string|data bodyData - Body Data - OPTIONAL
 * @param string encodingBody - request body enconding. - OPTIONAL
 * @param string hashBody - The base64-encoded 128-bit MD5 digest of the message (without the headers) according to RFC 1864. Default just don't use it. - OPTIONAL
-* @param boolean isMultipartUpload - Flag for multipart upload request only. - OPTIONAL
+* @param boolean excludeStorageHeaders - Flag for excluding storage headers. - OPTIONAL
 **/
-S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _connectionPath, _connectionMethod, callback, bodyData, encodingBody, hashBody, isMultipartUpload) {
+S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _connectionPath, _connectionMethod, callback, bodyData, encodingBody, hashBody, excludeStorageHeaders) {
     
     //Format header	
 	var headers = {};
@@ -384,7 +384,7 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _conn
     //Integrity check
 	if (hashBody) { headers['content-md5'] = hashBody }
     //RRS - http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectPUT.html
-    if (!isMultipartUpload) {
+    if (!excludeStorageHeaders) {
       if (this.reducedRedundancyStorage) { headers['x-amz-storage-class'] = "REDUCED_REDUNDANCY"; }
       else { headers['x-amz-storage-class'] = "STANDARD"; } 
     }
@@ -401,7 +401,8 @@ S3Api.prototype.simpleRequest = function simpleRequest(_successStatusCode, _conn
 		method: _connectionMethod,
 		path: _connectionPath,
 		host: (this.bucketID + "." + this.endPoint),
-		headers: headers
+		headers: headers,
+        rejectUnauthorized: false /*this need to be here since amazon does not provide custom SSL for each bucket and requests with ssl will not be authorized since S3 certificate is issue to S3 aws subdomain*/
 	}
     //
 	if(this.signer) this.signer.sign(connectionOptions)
