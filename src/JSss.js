@@ -131,7 +131,7 @@ JSss.prototype.finishUpload = function finishUpload() {
 	//Sort chunks by partNumber
 	var thisRef = this;
 	this.uploadChunks.sort(function(a,b){
-		if (a.PartNumber < b.PartNumber) { return false; }
+		if (a.PartNumber < b.PartNumber) { return -1; }
 		return true;
 	});
 	//Complete multipart (Amazon will merge all parts on this request
