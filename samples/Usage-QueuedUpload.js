@@ -1,21 +1,25 @@
+#!/usr/local/bin/node
+//var fileName = "test.zip";
 var MultiPart = require("JSss")("com.something.test","MyAccessKey","mySecret","dirOnS3/fileOnS3.zip", { useSSL:true,dataIntegrityEnabled:true,rrsEnabled:false }),
     fs = require('fs'),
-    functionQueue = require('function-queue') /*requires module 'function-queue' published on npm registry*/;
+    functionQueue = require('function-queue');
 //Local ivars
-var filepath = "/Users/user/fileToUpload.zip",
+    var fileName = "file.zip";
+    var filepath = "/home/user/" + fileName,
     partFinished = 0,
-    waitingQueue = null;
+    waitingQueue = null,
+    uploadQueue = functionQueue();
 
 //
 MultiPart.on("jsss-end",function () { console.log("end"); });
 MultiPart.on("jsss-error",function (err) { console.log(err); });
 MultiPart.on("jsss-upload-notice",function (partNumber,status,err) {
-  partFinished++;
     if (status == false) { 
       console.log("Finished upload " + partNumber + " with error: " + require('util').inspect(err) + "\n");
-      console.log("Aborting..."); 
-      MultiPart.abortUpload(); 
+      console.log("Retrying..."); 
+      uploadQueue.nextInQueue(); //re-call bext in queue
     } else { 
+      partFinished++;
       console.log("Finished upload " + partNumber + " with success\n");
       waitingQueue(); /*next in upload queue*/ 
     }
@@ -24,9 +28,6 @@ MultiPart.on("jsss-upload-notice",function (partNumber,status,err) {
 console.log("Requesting upload ID...\n");
 MultiPart.on("jsss-ready",function () {
   console.log("Ready to upload, fetching file data...\n");
-  //Reset ivars
-  var uploadQueue = functionQueue();
-  
   //Open file
   fs.open(filepath, 'r', function(err, fd) {
     abortOnError(err); //abort if error
