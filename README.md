@@ -2,6 +2,8 @@
 
 Nodejs Amazon S3 Multipart upload module
 
+[![NPM](https://nodei.co/npm/jsss.png?compact=true)](https://nodei.co/npm/jsss/)
+
 [![Dependency Status](https://gemnasium.com/TotenDev/JSss.png)](https://gemnasium.com/TotenDev/JSss)
 
 ## Requirements
